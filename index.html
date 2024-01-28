@@ -1,36 +1,30 @@
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-    <link rel="stylesheet" href="style.css" />
-    <link rel="shortcut icon" type="image/png" href="img/favicon.png" />
-    <title>Together</title>
+    <title>New Document</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
   </head>
   <body>
-    <div id="wrapper">
-      <div id="clock-box">
-        <div id="clock">
-          <date>0 Ngày</date>
-          <time>00:00:00</time>
-        </div>
+    <div id="info">
+      <div class="one">
+        <img src="img/male.jpg" class="avt" />
+        <p class="t_name">Trọng Nam</p>
       </div>
 
-      <div id="info">
-        <div class="one">
-          <img src="img/male.jpg" class="avt" />
-          <p>Trọng Nam</p>
-        </div>
-        <div id="heart">❤<anni>...</anni></div>
-        <div class="two">
-          <img src="img/female.jpg" class="avt" />
+      <canvas id="pinkboard" width="300" height="300"></canvas>
 
-          <p>Bích Ngọc</p>
-        </div>
+      <div class="two">
+        <img src="img/female.jpg" class="avt" />
+        <p class="t_name">Bích Ngọc</p>
       </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/point.js"></script>
+    <script src="js/particle.js"></script>
+    <script src="js/particlePool.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>
