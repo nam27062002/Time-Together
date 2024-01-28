@@ -87,7 +87,6 @@
     const days = calculateDays();
     context.font = 'bold 20px "Courier New", Courier, monospace';
     context.fillStyle = "#d66291";
-    context.strokeStyle = "#FF0000";
     context.textAlign = "center";
     context.textBaseline = "middle";
 
