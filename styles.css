@@ -4,8 +4,6 @@ body {
       background: #000;
       margin: 0;
       /* Remove default body margin */
-      overflow: hidden;
-      /* Prevent body scroll */
 }
 
 #info {
@@ -13,7 +11,6 @@ body {
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      /* Center content vertically */
       height: 100vh;
 }
 
@@ -43,4 +40,37 @@ body {
 .two {
       text-align: center;
       margin-top: 20px;
+}
+
+#memories {
+      text-align: left;
+      margin-top: 20px;
+}
+
+#memories h2 {
+      color: #d66291;
+      font-size: 24px;
+      margin-bottom: 20px;
+}
+
+#memories ul {
+      list-style-type: none;
+      padding: 0;
+}
+
+#memories li {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #ffffff;
+      background-color: #3b3b3b;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      transition: background-color 0.3s ease, transform 0.3s ease;
+      cursor: pointer;
+}
+
+#memories li:hover {
+      background-color: #555555;
+      transform: scale(1.02);
 }
