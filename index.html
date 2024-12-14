@@ -1,42 +1,36 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+
     <link rel="stylesheet" type="text/css" href="styles.css" />
     <link rel="shortcut icon" type="image/png" href="img/favicon.png" />
     <title>Together</title>
   </head>
   <body>
+    <audio controls autoplay loop style="display: none;">
+      <source src="music.mp3" type="audio/mpeg">
+    </audio>
+    <div id="overlay"></div>
     <div id="info">
       <div class="one">
-        <img src="img/male.jpg" class="avt" />
+        <img src="img/male.jpg" class="avt" alt="Male Avatar" />
         <p class="t_name">Trọng Nam</p>
       </div>
 
       <canvas id="pinkboard" width="300" height="300"></canvas>
 
       <div class="two">
-        <img src="img/female.jpg" class="avt" />
+        <img src="img/female.jpg" class="avt" alt="Female Avatar" />
         <p class="t_name">Bích Ngọc</p>
       </div>
     </div>
-    <div id="memories">
-      <!-- <ul>
-        <li>31/08/2023: Nam tỏ tình Bích Ngọc</li>
-        <li>01/09/2023: Nấu ăn cùng nhau (Bích Ngọc nấu Nam nhìn)</li>
-        <li>01/09/2023: Nam up story đầu tiên chụp cùng Bích Ngọc</li>
-        <li>05/01/2024: Chưa xin phép mà Bích Ngọc đã tự ý up story</li>
-        <li>15/01/2024: Anh không biết sinh nhật của em</li>
-        <li>26/01/2024: Gặp nhau sau 141 ngày gặp qua điện thoại :))</li>
-        <li>27/01/2024: Hôm nay làm hơi nhiều chuyện :))</li>
-        <li>14/02/2024: </li>
-      </ul> -->
-    </div>
-    <script src="js/settings.js"></script>
-    <script src="js/point.js"></script>
-    <script src="js/particle.js"></script>
-    <script src="js/particlePool.js"></script>
-    <script src="js/main.js"></script>
+    <script src="main.js"></script>
+   
   </body>
 </html>
