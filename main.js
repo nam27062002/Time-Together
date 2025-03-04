@@ -6,7 +6,7 @@ var settings = {
     effect: -0.75,
     size: 30,
   },
-  dateStart: "08/31/2023",
+  dateStart: "08/31/2013",
 };
 
 let displayMode = 0;
