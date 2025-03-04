@@ -304,11 +304,19 @@ class Point {
 document.addEventListener('DOMContentLoaded', function() {
   const audio = document.querySelector('audio');
   audio.muted = false; // Bật tiếng sau khi trang tải
+});
 
-  // Phát nhạc khi người dùng nhấp chuột
-  document.body.addEventListener('click', function() {
-    if (audio.paused) {
-      audio.play();
-    }
-  });
+
+document.body.addEventListener('click', function() {
+  const audio = document.querySelector('audio');
+  if (audio.paused) {
+    audio.play();
+  }
+});
+
+document.body.addEventListener('touchstart', function() {
+  const audio = document.querySelector('audio');
+  if (audio.paused) {
+    audio.play();
+  }
 });
