@@ -1,21 +1,16 @@
 var settings = {
   particles: {
-    length: 500,       // Số lượng hạt
-    duration: 2,       // Tuổi thọ trung bình (giây)
-    velocity: 100,     // Vận tốc bay
-    effect: -0.75,     // Gia tốc (tan dần)
-    size: 30,          // Kích thước hạt (canvas trái tim nhỏ)
+    length: 500,
+    duration: 2,
+    velocity: 100,
+    effect: -0.75,
+    size: 30,
   },
-  dateStart: "08/31/2023", // Mốc bắt đầu
+  dateStart: "08/31/2023",
 };
 
-// ------------------------------------
-// Thêm biến displayMode để chuyển đổi 0 <-> 1
-let displayMode = 0; 
-// 0: "XXX ngày"   |   1: "X năm, Y tháng, Z ngày"
-// ------------------------------------
+let displayMode = 0;
 
-// ---- Hàm chỉ tính tổng số ngày ----
 function getDiffDaysOnly() {
   const currentDate = new Date();
   const startDate = new Date(settings.dateStart);
@@ -23,33 +18,36 @@ function getDiffDaysOnly() {
   return Math.floor(timeDifference / (1000 * 3600 * 24));
 }
 
-// ---- Hàm tính năm - tháng - ngày lẻ ----
 function getDiffYearMonthDay() {
   const currentDate = new Date();
   const startDate = new Date(settings.dateStart);
+
+  if (currentDate < startDate) {
+    return { years: 0, months: 0, days: 0 };
+  }
 
   let y = currentDate.getFullYear() - startDate.getFullYear();
   let m = currentDate.getMonth() - startDate.getMonth();
   let d = currentDate.getDate() - startDate.getDate();
 
-  // Điều chỉnh ngày âm
   if (d < 0) {
     m -= 1;
-    // Lấy số ngày của tháng trước
     const tempDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
-    d = tempDate.getDate() + d; 
+    d = tempDate.getDate() + d;
   }
 
-  // Điều chỉnh tháng âm
   if (m < 0) {
     y -= 1;
     m += 12;
   }
 
+  y = Math.max(0, y);
+  m = Math.max(0, m);
+  d = Math.max(0, d);
+
   return { years: y, months: m, days: d };
 }
 
-// ----------------- Particle classes -------------------
 class Particle {
   constructor() {
     this.position = new Point();
@@ -78,7 +76,7 @@ class Particle {
 
   draw(context, image) {
     function ease(t) {
-      return --t * t * t + 1; // cubic ease-out
+      return --t * t * t + 1;
     }
     const size = image.width * ease(this.age / settings.particles.duration);
     context.globalAlpha = 1 - this.age / settings.particles.duration;
@@ -105,7 +103,6 @@ class ParticlePool {
 
   add(x, y, dx, dy) {
     this.particles[this.firstFree].initialize(x, y, dx, dy);
-
     this.firstFree++;
     if (this.firstFree === this.particles.length) this.firstFree = 0;
     if (this.firstActive === this.firstFree) {
@@ -116,19 +113,15 @@ class ParticlePool {
 
   update(deltaTime) {
     let i;
-
     if (this.firstActive < this.firstFree) {
       for (i = this.firstActive; i < this.firstFree; i++)
         this.particles[i].update(deltaTime);
     }
-
     if (this.firstFree < this.firstActive) {
       for (i = this.firstActive; i < this.particles.length; i++)
         this.particles[i].update(deltaTime);
-
       for (i = 0; i < this.firstFree; i++) this.particles[i].update(deltaTime);
     }
-
     while (
       this.particles[this.firstActive].age >= this.duration &&
       this.firstActive !== this.firstFree
@@ -143,11 +136,9 @@ class ParticlePool {
       for (let i = this.firstActive; i < this.firstFree; i++)
         this.particles[i].draw(context, image);
     }
-
     if (this.firstFree < this.firstActive) {
       for (let i = this.firstActive; i < this.particles.length; i++)
         this.particles[i].draw(context, image);
-
       for (let i = 0; i < this.firstFree; i++)
         this.particles[i].draw(context, image);
     }
@@ -184,30 +175,23 @@ class Point {
   }
 }
 
-// --------------------------------------
-//  IIFE (Immediately Invoked Function Expression)
 (function (canvas) {
   const context = canvas.getContext("2d");
   const particles = new ParticlePool(settings.particles.length);
   const particleRate = settings.particles.length / settings.particles.duration;
   let time;
 
-  // Biến tạm để bắt sự kiện vuốt
   let startX = 0;
 
-  // Bắt đầu chạm
   canvas.addEventListener("touchstart", (e) => {
     startX = e.touches[0].clientX;
   });
 
-  // Kết thúc chạm
   canvas.addEventListener("touchend", (e) => {
     const endX = e.changedTouches[0].clientX;
     const diffX = endX - startX;
-
-    // Nếu vuốt ngang vượt quá ngưỡng 50px, đổi mode
     if (Math.abs(diffX) > 50) {
-      displayMode = (displayMode + 1) % 2; 
+      displayMode = (displayMode + 1) % 2;
     }
   });
 
@@ -215,16 +199,10 @@ class Point {
     const scale = 0.4;
     return new Point(
       scale * 160 * Math.pow(Math.sin(t), 3),
-      scale *
-        (130 * Math.cos(t) -
-          50 * Math.cos(2 * t) -
-          20 * Math.cos(3 * t) -
-          10 * Math.cos(4 * t) +
-          25)
+      scale * (130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25)
     );
   }
 
-  // Tạo ảnh trái tim nhỏ (dùng cho hạt)
   const image = (function () {
     const c2 = document.createElement("canvas");
     const ctx2 = c2.getContext("2d");
@@ -242,13 +220,11 @@ class Point {
     let t = -Math.PI;
     let p = to(t);
     ctx2.moveTo(p.x, p.y);
-
     while (t < Math.PI) {
       t += 0.01;
       p = to(t);
       ctx2.lineTo(p.x, p.y);
     }
-
     ctx2.closePath();
     ctx2.fillStyle = "#ea80b0";
     ctx2.fill();
@@ -258,34 +234,24 @@ class Point {
     return img;
   })();
 
-  // render() - Vẽ animation + text
   function render() {
     requestAnimationFrame(render);
-
     const newTime = new Date().getTime() / 1000;
     const deltaTime = newTime - (time || newTime);
     time = newTime;
 
     context.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Sinh thêm hạt
     const amount = particleRate * deltaTime;
     for (let i = 0; i < amount; i++) {
       const pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
       const dir = pos.clone().length(settings.particles.velocity);
-      particles.add(
-        canvas.width / 2 + pos.x,
-        canvas.height / 2 - pos.y,
-        dir.x,
-        -dir.y
-      );
+      particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
     }
 
     particles.update(deltaTime);
     particles.draw(context, image);
 
-    // -------------------------------
-    // Hiển thị text tùy theo mode
     context.font = 'bold 20px "Courier New", Courier, monospace';
     context.fillStyle = "#d66291";
     context.textAlign = "center";
@@ -293,16 +259,17 @@ class Point {
 
     let displayText = "";
     if (displayMode === 0) {
-      // Mode 0: chỉ số ngày
       const diffDays = getDiffDaysOnly();
       displayText = `${diffDays} ngày`;
     } else {
-      // Mode 1: x năm, y tháng, z ngày
       const { years, months, days } = getDiffYearMonthDay();
-      const multiLine = `${years} năm\n${months} tháng\n${days} ngày`;
+      let displayLines = [];
+      if (years > 0) displayLines.push(`${years} năm`);
+      if (months > 0) displayLines.push(`${months} tháng`);
+      if (days > 0 || (years === 0 && months === 0)) displayLines.push(`${days} ngày`);
+      const multiLine = displayLines.join("\n");
+
       const lines = multiLine.split("\n");
-      
-      // Rồi vẽ từng line
       const lineHeight = 25;
       const baseY = canvas.height / 2 - lineHeight;
       lines.forEach((line, index) => {
@@ -331,3 +298,17 @@ class Point {
     render();
   }, 10);
 })(document.getElementById("pinkboard"));
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+  const audio = document.querySelector('audio');
+  audio.muted = false; // Bật tiếng sau khi trang tải
+
+  // Phát nhạc khi người dùng nhấp chuột
+  document.body.addEventListener('click', function() {
+    if (audio.paused) {
+      audio.play();
+    }
+  });
+});
