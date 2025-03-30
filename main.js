@@ -10,6 +10,8 @@ const SETTINGS = {
   heart: {
     scale: 0.4,
     color: "#ea80b0",
+    pulseScale: 1.1,
+    pulseDuration: 2,
   },
   text: {
     font: 'bold 20px "Courier New", Courier, monospace',
@@ -186,11 +188,11 @@ function createHeartImage() {
   canvas.width = SETTINGS.particles.size;
   canvas.height = SETTINGS.particles.size;
 
-  function pointOnHeart(t) {
-    const scale = SETTINGS.heart.scale;
+  function pointOnHeart(t, scale = 1) {
+    const baseScale = SETTINGS.heart.scale * scale;
     return new Point(
-      scale * 160 * Math.pow(Math.sin(t), 3),
-      scale *
+      baseScale * 160 * Math.pow(Math.sin(t), 3),
+      baseScale *
         (130 * Math.cos(t) -
           50 * Math.cos(2 * t) -
           20 * Math.cos(3 * t) -
@@ -199,8 +201,8 @@ function createHeartImage() {
     );
   }
 
-  function to(t) {
-    const point = pointOnHeart(t);
+  function to(t, scale = 1) {
+    const point = pointOnHeart(t, scale);
     point.x =
       SETTINGS.particles.size / 2 + (point.x * SETTINGS.particles.size) / 350;
     point.y =
@@ -234,9 +236,10 @@ function initCanvas(canvas) {
   const particleRate = SETTINGS.particles.length / SETTINGS.particles.duration;
   const image = createHeartImage();
   let time;
+  let heartScale = 1;
 
   function pointOnHeart(t) {
-    const scale = SETTINGS.heart.scale;
+    const scale = SETTINGS.heart.scale * heartScale;
     return new Point(
       scale * 160 * Math.pow(Math.sin(t), 3),
       scale *
@@ -253,6 +256,12 @@ function initCanvas(canvas) {
     const newTime = new Date().getTime() / 1000;
     const deltaTime = newTime - (time || newTime);
     time = newTime;
+
+    // Cập nhật tỷ lệ trái tim
+    heartScale =
+      1 +
+      Math.sin((newTime * Math.PI) / SETTINGS.heart.pulseDuration) *
+        (SETTINGS.heart.pulseScale - 1);
 
     context.clearRect(0, 0, canvas.width, canvas.height);
 

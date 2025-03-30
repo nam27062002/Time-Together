@@ -40,6 +40,21 @@ body {
   opacity: 0.4;
   pointer-events: none;
   z-index: -1;
+  animation: pulseOverlay 4s ease-in-out infinite;
+}
+
+@keyframes pulseOverlay {
+  0% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0.3;
+  }
 }
 
 #info {
@@ -72,6 +87,28 @@ body {
   transition:
     transform var(--transition-speed) ease,
     box-shadow var(--transition-speed) ease;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  animation: avatarGlow 3s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+  0% {
+    box-shadow:
+      0 0 15px var(--white-shadow),
+      0 0 8px var(--primary-shadow);
+  }
+
+  50% {
+    box-shadow:
+      0 0 25px var(--white-shadow),
+      0 0 15px var(--primary-shadow);
+  }
+
+  100% {
+    box-shadow:
+      0 0 15px var(--white-shadow),
+      0 0 8px var(--primary-shadow);
+  }
 }
 
 .avt:hover {
@@ -88,6 +125,21 @@ body {
   margin-top: 12px;
   text-shadow: 1px 1px 3px var(--primary-shadow);
   text-align: center;
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 1px 1px 3px var(--primary-shadow);
+  }
+
+  50% {
+    text-shadow: 1px 1px 8px var(--primary-shadow);
+  }
+
+  100% {
+    text-shadow: 1px 1px 3px var(--primary-shadow);
+  }
 }
 
 .profile {
@@ -169,6 +221,25 @@ body {
   z-index: 100;
   box-shadow: 0 0 15px rgba(214, 98, 145, 0.5);
   backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(214, 98, 145, 0.5);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(214, 98, 145, 0.8);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(214, 98, 145, 0.5);
+  }
 }
 
 .music-control:hover {
