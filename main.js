@@ -1,4 +1,4 @@
-var settings = {
+const SETTINGS = {
   particles: {
     length: 500,
     duration: 2,
@@ -6,21 +6,29 @@ var settings = {
     effect: -0.75,
     size: 30,
   },
-  dateStart: "08/31/2013",
+  dateStart: "08/31/2023",
+  heart: {
+    scale: 0.4,
+    color: "#ea80b0",
+  },
+  text: {
+    font: 'bold 20px "Courier New", Courier, monospace',
+    color: "#d66291",
+    lineHeight: 25,
+  },
 };
 
 let displayMode = 0;
 
 function getDiffDaysOnly() {
   const currentDate = new Date();
-  const startDate = new Date(settings.dateStart);
-  const timeDifference = currentDate - startDate;
-  return Math.floor(timeDifference / (1000 * 3600 * 24));
+  const startDate = new Date(SETTINGS.dateStart);
+  return Math.floor((currentDate - startDate) / (1000 * 3600 * 24));
 }
 
 function getDiffYearMonthDay() {
   const currentDate = new Date();
-  const startDate = new Date(settings.dateStart);
+  const startDate = new Date(SETTINGS.dateStart);
 
   if (currentDate < startDate) {
     return { years: 0, months: 0, days: 0 };
@@ -32,7 +40,11 @@ function getDiffYearMonthDay() {
 
   if (d < 0) {
     m -= 1;
-    const tempDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+    const tempDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      0
+    );
     d = tempDate.getDate() + d;
   }
 
@@ -41,114 +53,17 @@ function getDiffYearMonthDay() {
     m += 12;
   }
 
-  y = Math.max(0, y);
-  m = Math.max(0, m);
-  d = Math.max(0, d);
-
-  return { years: y, months: m, days: d };
-}
-
-class Particle {
-  constructor() {
-    this.position = new Point();
-    this.velocity = new Point();
-    this.acceleration = new Point();
-    this.age = 0;
-  }
-
-  initialize(x, y, dx, dy) {
-    this.position.x = x;
-    this.position.y = y;
-    this.velocity.x = dx;
-    this.velocity.y = dy;
-    this.acceleration.x = dx * settings.particles.effect;
-    this.acceleration.y = dy * settings.particles.effect;
-    this.age = 0;
-  }
-
-  update(deltaTime) {
-    this.position.x += this.velocity.x * deltaTime;
-    this.position.y += this.velocity.y * deltaTime;
-    this.velocity.x += this.acceleration.x * deltaTime;
-    this.velocity.y += this.acceleration.y * deltaTime;
-    this.age += deltaTime;
-  }
-
-  draw(context, image) {
-    function ease(t) {
-      return --t * t * t + 1;
-    }
-    const size = image.width * ease(this.age / settings.particles.duration);
-    context.globalAlpha = 1 - this.age / settings.particles.duration;
-    context.drawImage(
-      image,
-      this.position.x - size / 2,
-      this.position.y - size / 2,
-      size,
-      size
-    );
-  }
-}
-
-class ParticlePool {
-  constructor(length) {
-    this.particles = new Array(length);
-    this.firstActive = 0;
-    this.firstFree = 0;
-    this.duration = settings.particles.duration;
-
-    for (let i = 0; i < this.particles.length; i++)
-      this.particles[i] = new Particle();
-  }
-
-  add(x, y, dx, dy) {
-    this.particles[this.firstFree].initialize(x, y, dx, dy);
-    this.firstFree++;
-    if (this.firstFree === this.particles.length) this.firstFree = 0;
-    if (this.firstActive === this.firstFree) {
-      this.firstActive++;
-      if (this.firstActive === this.particles.length) this.firstActive = 0;
-    }
-  }
-
-  update(deltaTime) {
-    let i;
-    if (this.firstActive < this.firstFree) {
-      for (i = this.firstActive; i < this.firstFree; i++)
-        this.particles[i].update(deltaTime);
-    }
-    if (this.firstFree < this.firstActive) {
-      for (i = this.firstActive; i < this.particles.length; i++)
-        this.particles[i].update(deltaTime);
-      for (i = 0; i < this.firstFree; i++) this.particles[i].update(deltaTime);
-    }
-    while (
-      this.particles[this.firstActive].age >= this.duration &&
-      this.firstActive !== this.firstFree
-    ) {
-      this.firstActive++;
-      if (this.firstActive === this.particles.length) this.firstActive = 0;
-    }
-  }
-
-  draw(context, image) {
-    if (this.firstActive < this.firstFree) {
-      for (let i = this.firstActive; i < this.firstFree; i++)
-        this.particles[i].draw(context, image);
-    }
-    if (this.firstFree < this.firstActive) {
-      for (let i = this.firstActive; i < this.particles.length; i++)
-        this.particles[i].draw(context, image);
-      for (let i = 0; i < this.firstFree; i++)
-        this.particles[i].draw(context, image);
-    }
-  }
+  return {
+    years: Math.max(0, y),
+    months: Math.max(0, m),
+    days: Math.max(0, d),
+  };
 }
 
 class Point {
-  constructor(x, y) {
-    this.x = typeof x !== "undefined" ? x : 0;
-    this.y = typeof y !== "undefined" ? y : 0;
+  constructor(x = 0, y = 0) {
+    this.x = x;
+    this.y = y;
   }
 
   clone() {
@@ -175,64 +90,163 @@ class Point {
   }
 }
 
-(function (canvas) {
-  const context = canvas.getContext("2d");
-  const particles = new ParticlePool(settings.particles.length);
-  const particleRate = settings.particles.length / settings.particles.duration;
-  let time;
+class Particle {
+  constructor() {
+    this.position = new Point();
+    this.velocity = new Point();
+    this.acceleration = new Point();
+    this.age = 0;
+  }
 
-  let startX = 0;
+  initialize(x, y, dx, dy) {
+    this.position.x = x;
+    this.position.y = y;
+    this.velocity.x = dx;
+    this.velocity.y = dy;
+    this.acceleration.x = dx * SETTINGS.particles.effect;
+    this.acceleration.y = dy * SETTINGS.particles.effect;
+    this.age = 0;
+  }
 
-  canvas.addEventListener("touchstart", (e) => {
-    startX = e.touches[0].clientX;
-  });
+  update(deltaTime) {
+    this.position.x += this.velocity.x * deltaTime;
+    this.position.y += this.velocity.y * deltaTime;
+    this.velocity.x += this.acceleration.x * deltaTime;
+    this.velocity.y += this.acceleration.y * deltaTime;
+    this.age += deltaTime;
+  }
 
-  canvas.addEventListener("touchend", (e) => {
-    const endX = e.changedTouches[0].clientX;
-    const diffX = endX - startX;
-    if (Math.abs(diffX) > 50) {
-      displayMode = (displayMode + 1) % 2;
+  draw(context, image) {
+    const ease = (t) => --t * t * t + 1;
+    const size = image.width * ease(this.age / SETTINGS.particles.duration);
+    context.globalAlpha = 1 - this.age / SETTINGS.particles.duration;
+    context.drawImage(
+      image,
+      this.position.x - size / 2,
+      this.position.y - size / 2,
+      size,
+      size
+    );
+  }
+}
+
+class ParticlePool {
+  constructor(length) {
+    this.particles = Array(length)
+      .fill()
+      .map(() => new Particle());
+    this.firstActive = 0;
+    this.firstFree = 0;
+    this.duration = SETTINGS.particles.duration;
+  }
+
+  add(x, y, dx, dy) {
+    this.particles[this.firstFree].initialize(x, y, dx, dy);
+    this.firstFree = (this.firstFree + 1) % this.particles.length;
+    if (this.firstActive === this.firstFree) {
+      this.firstActive = (this.firstActive + 1) % this.particles.length;
     }
-  });
+  }
+
+  update(deltaTime) {
+    const updateParticle = (i) => this.particles[i].update(deltaTime);
+
+    if (this.firstActive < this.firstFree) {
+      for (let i = this.firstActive; i < this.firstFree; i++) updateParticle(i);
+    } else {
+      for (let i = this.firstActive; i < this.particles.length; i++)
+        updateParticle(i);
+      for (let i = 0; i < this.firstFree; i++) updateParticle(i);
+    }
+
+    while (
+      this.particles[this.firstActive].age >= this.duration &&
+      this.firstActive !== this.firstFree
+    ) {
+      this.firstActive = (this.firstActive + 1) % this.particles.length;
+    }
+  }
+
+  draw(context, image) {
+    const drawParticle = (i) => this.particles[i].draw(context, image);
+
+    if (this.firstActive < this.firstFree) {
+      for (let i = this.firstActive; i < this.firstFree; i++) drawParticle(i);
+    } else {
+      for (let i = this.firstActive; i < this.particles.length; i++)
+        drawParticle(i);
+      for (let i = 0; i < this.firstFree; i++) drawParticle(i);
+    }
+  }
+}
+
+function createHeartImage() {
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = SETTINGS.particles.size;
+  canvas.height = SETTINGS.particles.size;
 
   function pointOnHeart(t) {
-    const scale = 0.4;
+    const scale = SETTINGS.heart.scale;
     return new Point(
       scale * 160 * Math.pow(Math.sin(t), 3),
-      scale * (130 * Math.cos(t) - 50 * Math.cos(2 * t) - 20 * Math.cos(3 * t) - 10 * Math.cos(4 * t) + 25)
+      scale *
+        (130 * Math.cos(t) -
+          50 * Math.cos(2 * t) -
+          20 * Math.cos(3 * t) -
+          10 * Math.cos(4 * t) +
+          25)
     );
   }
 
-  const image = (function () {
-    const c2 = document.createElement("canvas");
-    const ctx2 = c2.getContext("2d");
-    c2.width = settings.particles.size;
-    c2.height = settings.particles.size;
+  function to(t) {
+    const point = pointOnHeart(t);
+    point.x =
+      SETTINGS.particles.size / 2 + (point.x * SETTINGS.particles.size) / 350;
+    point.y =
+      SETTINGS.particles.size / 2 - (point.y * SETTINGS.particles.size) / 350;
+    return point;
+  }
 
-    function to(t) {
-      const point = pointOnHeart(t);
-      point.x = settings.particles.size / 2 + (point.x * settings.particles.size) / 350;
-      point.y = settings.particles.size / 2 - (point.y * settings.particles.size) / 350;
-      return point;
-    }
+  ctx.beginPath();
+  let t = -Math.PI;
+  let p = to(t);
+  ctx.moveTo(p.x, p.y);
 
-    ctx2.beginPath();
-    let t = -Math.PI;
-    let p = to(t);
-    ctx2.moveTo(p.x, p.y);
-    while (t < Math.PI) {
-      t += 0.01;
-      p = to(t);
-      ctx2.lineTo(p.x, p.y);
-    }
-    ctx2.closePath();
-    ctx2.fillStyle = "#ea80b0";
-    ctx2.fill();
+  while (t < Math.PI) {
+    t += 0.01;
+    p = to(t);
+    ctx.lineTo(p.x, p.y);
+  }
 
-    const img = new Image();
-    img.src = c2.toDataURL();
-    return img;
-  })();
+  ctx.closePath();
+  ctx.fillStyle = SETTINGS.heart.color;
+  ctx.fill();
+
+  const img = new Image();
+  img.src = canvas.toDataURL();
+  return img;
+}
+
+function initCanvas(canvas) {
+  const context = canvas.getContext("2d");
+  const particles = new ParticlePool(SETTINGS.particles.length);
+  const particleRate = SETTINGS.particles.length / SETTINGS.particles.duration;
+  const image = createHeartImage();
+  let time;
+
+  function pointOnHeart(t) {
+    const scale = SETTINGS.heart.scale;
+    return new Point(
+      scale * 160 * Math.pow(Math.sin(t), 3),
+      scale *
+        (130 * Math.cos(t) -
+          50 * Math.cos(2 * t) -
+          20 * Math.cos(3 * t) -
+          10 * Math.cos(4 * t) +
+          25)
+    );
+  }
 
   function render() {
     requestAnimationFrame(render);
@@ -245,45 +259,46 @@ class Point {
     const amount = particleRate * deltaTime;
     for (let i = 0; i < amount; i++) {
       const pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
-      const dir = pos.clone().length(settings.particles.velocity);
-      particles.add(canvas.width / 2 + pos.x, canvas.height / 2 - pos.y, dir.x, -dir.y);
+      const dir = pos.clone().length(SETTINGS.particles.velocity);
+      particles.add(
+        canvas.width / 2 + pos.x,
+        canvas.height / 2 - pos.y,
+        dir.x,
+        -dir.y
+      );
     }
 
     particles.update(deltaTime);
     particles.draw(context, image);
 
-    context.font = 'bold 20px "Courier New", Courier, monospace';
-    context.fillStyle = "#d66291";
+    context.font = SETTINGS.text.font;
+    context.fillStyle = SETTINGS.text.color;
     context.textAlign = "center";
     context.textBaseline = "middle";
 
     let displayText = "";
     if (displayMode === 0) {
-      const diffDays = getDiffDaysOnly();
-      displayText = `${diffDays} ngày`;
+      displayText = `${getDiffDaysOnly()} ngày`;
+      const textY = canvas.height / 2;
+      context.lineWidth = 2;
+      context.strokeStyle = "rgba(0,0,0,0.5)";
+      context.strokeText(displayText, canvas.width / 2, textY);
+      context.fillText(displayText, canvas.width / 2, textY);
     } else {
       const { years, months, days } = getDiffYearMonthDay();
-      let displayLines = [];
+      const displayLines = [];
       if (years > 0) displayLines.push(`${years} năm`);
       if (months > 0) displayLines.push(`${months} tháng`);
-      if (days > 0 || (years === 0 && months === 0)) displayLines.push(`${days} ngày`);
-      const multiLine = displayLines.join("\n");
+      if (days > 0 || (years === 0 && months === 0))
+        displayLines.push(`${days} ngày`);
 
-      const lines = multiLine.split("\n");
-      const lineHeight = 25;
-      const baseY = canvas.height / 2 - lineHeight;
-      lines.forEach((line, index) => {
-        const yPos = baseY + index * lineHeight;
+      const baseY = canvas.height / 2 - SETTINGS.text.lineHeight;
+      displayLines.forEach((line, index) => {
+        const yPos = baseY + index * SETTINGS.text.lineHeight;
         context.strokeText(line, canvas.width / 2, yPos);
         context.fillText(line, canvas.width / 2, yPos);
       });
     }
-
-    const textY = canvas.height / 2;
-    context.lineWidth = 2;
-    context.strokeStyle = "rgba(0,0,0,0.5)";
-    context.strokeText(displayText, canvas.width / 2, textY);
-    context.fillText(displayText, canvas.width / 2, textY);
   }
 
   function onResize() {
@@ -292,31 +307,97 @@ class Point {
   }
 
   window.onresize = onResize;
-
-  setTimeout(function () {
+  setTimeout(() => {
     onResize();
     render();
   }, 10);
-})(document.getElementById("pinkboard"));
+}
 
+// Initialize canvas
+initCanvas(document.getElementById("pinkboard"));
 
+// Audio handling
+const audio = document.getElementById("bgMusic");
 
-document.addEventListener('DOMContentLoaded', function() {
-  const audio = document.querySelector('audio');
-  audio.muted = false; // Bật tiếng sau khi trang tải
-});
-
-
-document.body.addEventListener('click', function() {
-  const audio = document.querySelector('audio');
+function handleAudioPlay() {
   if (audio.paused) {
-    audio.play();
+    audio.play().catch((error) => {
+      console.log("Không thể phát nhạc tự động:", error);
+    });
   }
+}
+
+// Thêm sự kiện cho toàn bộ document
+document.addEventListener("click", handleAudioPlay);
+document.addEventListener("touchstart", handleAudioPlay);
+document.addEventListener("keydown", handleAudioPlay);
+
+// Loading screen handling
+document.addEventListener("DOMContentLoaded", () => {
+  const loadingScreen = document.querySelector(".loading-screen");
+  const musicControl = document.querySelector(".music-control");
+  const musicIcon = musicControl.querySelector("i");
+
+  // Hide loading screen after 2 seconds
+  setTimeout(() => {
+    loadingScreen.classList.add("fade-out");
+  }, 2000);
+
+  // Music control handling
+  musicControl.addEventListener("click", () => {
+    if (audio.paused) {
+      audio
+        .play()
+        .then(() => {
+          musicControl.classList.add("playing");
+          musicControl.classList.remove("paused");
+          musicIcon.classList.remove("fa-play");
+          musicIcon.classList.add("fa-pause");
+        })
+        .catch((error) => {
+          console.log("Không thể phát nhạc:", error);
+        });
+    } else {
+      audio.pause();
+      musicControl.classList.remove("playing");
+      musicControl.classList.add("paused");
+      musicIcon.classList.remove("fa-pause");
+      musicIcon.classList.add("fa-play");
+    }
+  });
+
+  // Update music control state
+  audio.addEventListener("play", () => {
+    musicControl.classList.add("playing");
+    musicControl.classList.remove("paused");
+    musicIcon.classList.remove("fa-play");
+    musicIcon.classList.add("fa-pause");
+  });
+
+  audio.addEventListener("pause", () => {
+    musicControl.classList.remove("playing");
+    musicControl.classList.add("paused");
+    musicIcon.classList.remove("fa-pause");
+    musicIcon.classList.add("fa-play");
+  });
+
+  // Try to play music when page loads
+  audio.muted = false;
+  handleAudioPlay();
 });
 
-document.body.addEventListener('touchstart', function() {
-  const audio = document.querySelector('audio');
-  if (audio.paused) {
-    audio.play();
+// Touch handling for display mode
+let startX = 0;
+const canvas = document.getElementById("pinkboard");
+
+canvas.addEventListener("touchstart", (e) => {
+  startX = e.touches[0].clientX;
+});
+
+canvas.addEventListener("touchend", (e) => {
+  const endX = e.changedTouches[0].clientX;
+  const diffX = endX - startX;
+  if (Math.abs(diffX) > 50) {
+    displayMode = (displayMode + 1) % 2;
   }
 });

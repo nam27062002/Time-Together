@@ -1,31 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Time Together - Đếm ngược thời gian bên nhau"
+    />
+    <meta name="theme-color" content="#d66291" />
     <link
       href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap"
       rel="stylesheet"
     />
-    <link rel="stylesheet" type="text/css" href="styles.css" />
-    <link rel="shortcut icon" type="image/png" href="img/favicon.png" />
-    <title>Together</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="shortcut icon" href="img/favicon.png" type="image/png" />
+    <title>Time Together</title>
   </head>
   <body>
-    <audio controls autoplay muted loop style="display: none;">
-      <source src="music.mp3" type="audio/mpeg">
+    <div class="loading-screen">
+      <img src="img/favicon.png" alt="Loading" class="loading-heart" />
+    </div>
+    <audio id="bgMusic" controls autoplay muted loop style="display: none">
+      <source src="music.mp3" type="audio/mpeg" />
     </audio>
     <div id="overlay"></div>
-    <div id="info">
-      <div class="one">
-        <img src="img/male.jpg" class="avt" alt="Male Avatar" />
+    <main id="info">
+      <div class="profile one">
+        <img src="img/male.jpg" class="avt" alt="Trọng Nam" />
         <p class="t_name">Trọng Nam</p>
       </div>
       <canvas id="pinkboard" width="300" height="300"></canvas>
-      <div class="two">
-        <img src="img/female.jpg" class="avt" alt="Female Avatar" />
+      <div class="profile two">
+        <img src="img/female.jpg" class="avt" alt="Bích Ngọc" />
         <p class="t_name">Bích Ngọc</p>
       </div>
+    </main>
+    <div class="music-control">
+      <span class="tooltip">Bật/Tắt nhạc</span>
+      <i class="fas fa-play"></i>
     </div>
     <script src="main.js"></script>
   </body>
