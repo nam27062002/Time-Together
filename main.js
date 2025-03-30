@@ -344,7 +344,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }, 2000);
 
   // Music control handling
-  musicControl.addEventListener("click", () => {
+  musicControl.addEventListener("click", (e) => {
+    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên document
     if (audio.paused) {
       audio
         .play()
