@@ -16,7 +16,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
     />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="css/styles.css" />
     <link rel="shortcut icon" href="img/favicon.png" type="image/png" />
     <title>Time Together</title>
   </head>
@@ -24,25 +24,27 @@
     <div class="loading-screen">
       <img src="img/favicon.png" alt="Loading" class="loading-heart" />
     </div>
-    <audio id="bgMusic" controls autoplay muted loop style="display: none">
-      <source src="music.mp3" type="audio/mpeg" />
+    <audio id="bgMusic" controls autoplay muted loop>
+      <source src="music/music.mp3" type="audio/mpeg" />
     </audio>
     <div id="overlay"></div>
     <main id="info">
       <div class="profile one">
-        <img src="img/male.jpg" class="avt" alt="Trọng Nam" />
+        <img src="img/male.jpg" class="avt" id="avt-male" alt="Trọng Nam" />
         <p class="t_name">Trọng Nam</p>
+        <input type="file" id="file-input-male" accept="image/*" style="display: none;" />
       </div>
       <canvas id="pinkboard" width="300" height="300"></canvas>
       <div class="profile two">
-        <img src="img/female.jpg" class="avt" alt="Bích Ngọc" />
+        <img src="img/female.jpg" class="avt" id="avt-female" alt="Bích Ngọc" />
         <p class="t_name">Bích Ngọc</p>
+        <input type="file" id="file-input-female" accept="image/*" style="display: none;" />
       </div>
     </main>
     <div class="music-control">
       <span class="tooltip">Bật/Tắt nhạc</span>
       <i class="fas fa-play"></i>
     </div>
-    <script src="main.js"></script>
+    <script src="js/main.js"></script>
   </body>
 </html>

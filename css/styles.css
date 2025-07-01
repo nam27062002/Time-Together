@@ -1,0 +1,607 @@
+:root {
+  --primary-color: #d66291;
+  --primary-shadow: rgba(214, 98, 145, 0.5);
+  --white-shadow: rgba(255, 255, 255, 0.1);
+  --transition-speed: 0.3s;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  font-family: "Poppins", sans-serif;
+  overflow: hidden;
+  background-color: #000;
+  background-image: url('img/bg_phone.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  position: relative;
+}
+
+@media (min-width: 769px) {
+  body {
+    background-image: url('img/bg_pc.jpg');
+  }
+}
+
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at center, var(--primary-color) 0%, #000 80%);
+  mix-blend-mode: screen;
+  opacity: 0.4;
+  pointer-events: none;
+  z-index: -1;
+  animation: pulseOverlay 4s ease-in-out infinite;
+}
+
+@keyframes pulseOverlay {
+  0% {
+    opacity: 0.3;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  100% {
+    opacity: 0.3;
+  }
+}
+
+#info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+}
+
+#pinkboard {
+  margin: 40px 0;
+  box-shadow: 0 0 30px var(--primary-shadow);
+  border-radius: 50%;
+  transition: transform var(--transition-speed) ease;
+}
+
+#pinkboard:hover {
+  transform: scale(1.05);
+}
+
+.avt {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  object-fit: cover;
+  box-shadow:
+    0 0 15px var(--white-shadow),
+    0 0 8px var(--primary-shadow);
+  transition:
+    transform var(--transition-speed) ease,
+    box-shadow var(--transition-speed) ease;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  animation: avatarGlow 3s ease-in-out infinite;
+}
+
+@keyframes avatarGlow {
+  0% {
+    box-shadow:
+      0 0 15px var(--white-shadow),
+      0 0 8px var(--primary-shadow);
+  }
+
+  50% {
+    box-shadow:
+      0 0 25px var(--white-shadow),
+      0 0 15px var(--primary-shadow);
+  }
+
+  100% {
+    box-shadow:
+      0 0 15px var(--white-shadow),
+      0 0 8px var(--primary-shadow);
+  }
+}
+
+.avt:hover {
+  transform: scale(1.05);
+  box-shadow:
+    0 0 20px rgba(255, 255, 255, 0.3),
+    0 0 10px var(--primary-shadow);
+}
+
+.t_name {
+  color: var(--primary-color);
+  font-size: 20px;
+  font-weight: 700;
+  margin-top: 12px;
+  text-shadow: 1px 1px 3px var(--primary-shadow);
+  text-align: center;
+  animation: textGlow 2s ease-in-out infinite;
+}
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 1px 1px 3px var(--primary-shadow);
+  }
+
+  50% {
+    text-shadow: 1px 1px 8px var(--primary-shadow);
+  }
+
+  100% {
+    text-shadow: 1px 1px 3px var(--primary-shadow);
+  }
+}
+
+.profile {
+  text-align: center;
+  margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+  #pinkboard {
+    width: 80vw;
+    height: 80vw;
+    max-width: 400px;
+    max-height: 400px;
+    margin: 20px 0;
+  }
+
+  .avt {
+    width: 100px;
+    height: 100px;
+  }
+
+  .t_name {
+    font-size: 16px;
+  }
+}
+
+.loading-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.5s ease-out;
+}
+
+.loading-screen.fade-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loading-heart {
+  width: 50px;
+  height: 50px;
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.2);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.music-control {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: rgba(214, 98, 145, 0.8);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  z-index: 100;
+  box-shadow: 0 0 15px rgba(214, 98, 145, 0.5);
+  backdrop-filter: blur(5px);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  animation: buttonPulse 2s ease-in-out infinite;
+}
+
+@keyframes buttonPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(214, 98, 145, 0.5);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(214, 98, 145, 0.8);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 15px rgba(214, 98, 145, 0.5);
+  }
+}
+
+.music-control:hover {
+  transform: scale(1.1);
+  background: rgba(214, 98, 145, 1);
+  box-shadow: 0 0 20px rgba(214, 98, 145, 0.8);
+}
+
+.music-control i {
+  color: white;
+  font-size: 24px;
+  transition: all 0.3s ease;
+}
+
+.music-control.playing i {
+  animation: rotate 3s linear infinite;
+}
+
+.music-control.paused i {
+  opacity: 0.7;
+}
+
+.music-control .tooltip {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-size: 12px;
+  margin-bottom: 5px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.music-control:hover .tooltip {
+  opacity: 1;
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Additional styles for better mobile experience */
+body {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Ensure content is not cut off on small screens */
+main {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+/* Adjustments for profile sections */
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.profile.one {
+  order: 1;
+}
+
+.profile.two {
+  order: 3;
+}
+
+#pinkboard {
+  order: 2;
+}
+
+/* Ensure music control is always visible */
+.music-control {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+
+/* Adjustments for loading screen */
+.loading-screen {
+  background-color: #000;
+}
+
+/* General typography improvements */
+p {
+  line-height: 1.5;
+}
+
+/* Accessibility improvements */
+:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Remove default audio player controls */
+audio::-webkit-media-controls-panel {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-current-time-display {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-time-remaining-display {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-timeline {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-volume-slider {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-mute-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-toggle-closed-captions-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+audio::-webkit-media-controls-fullscreen-button {
+  display: none !important;
+  -webkit-appearance: none;
+}
+
+/* Hide the audio element completely */
+audio {
+  display: none;
+}
+
+/* Ensure the canvas is always centered */
+#pinkboard {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Add some basic styling for the body to ensure it takes full height */
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Ensure the main content area takes up available space */
+main {
+  flex-grow: 1;
+}
+
+/* Center the profiles and canvas vertically and horizontally */
+#info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Adjustments for profile sections to ensure they are responsive */
+.profile {
+  margin: 20px;
+}
+
+/* Ensure images are responsive */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* General font smoothing for better text rendering */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Improve focus states for accessibility */
+a:focus,
+button:focus,
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Add a subtle transition to all elements for smoother interactions */
+* {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Remove the transition from elements that should not have it, e.g., for performance */
+.loading-screen,
+.loading-heart {
+  transition: none;
+}
+
+/* Ensure the music control button is always on top */
+.music-control {
+  z-index: 999;
+}
+
+/* Add a subtle hover effect to the music control button */
+.music-control:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 20px rgba(214, 98, 145, 0.8);
+}
+
+/* Adjustments for the tooltip */
+.music-control .tooltip {
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+/* Ensure the canvas is responsive and maintains aspect ratio */
+#pinkboard {
+  max-width: 90vw;
+  max-height: 90vw;
+}
+
+/* Adjustments for the profile names */
+.t_name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* Ensure the body background image covers the entire screen */
+body {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Adjustments for the overlay animation */
+@keyframes pulseOverlay {
+  0% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+
+  100% {
+    opacity: 0.2;
+  }
+}
+
+/* Fine-tune avatar glow animation */
+@keyframes avatarGlow {
+  0% {
+    box-shadow:
+      0 0 10px var(--white-shadow),
+      0 0 5px var(--primary-shadow);
+  }
+
+  50% {
+    box-shadow:
+      0 0 20px var(--white-shadow),
+      0 0 10px var(--primary-shadow);
+  }
+
+  100% {
+    box-shadow:
+      0 0 10px var(--white-shadow),
+      0 0 5px var(--primary-shadow);
+  }
+}
+
+/* Fine-tune text glow animation */
+@keyframes textGlow {
+  0% {
+    text-shadow: 0 0 2px var(--primary-shadow);
+  }
+
+  50% {
+    text-shadow: 0 0 8px var(--primary-shadow);
+  }
+
+  100% {
+    text-shadow: 0 0 2px var(--primary-shadow);
+  }
+}
+
+/* Adjustments for button pulse animation */
+@keyframes buttonPulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(214, 98, 145, 0.5);
+  }
+
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 0 20px rgba(214, 98, 145, 0.8);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 10px rgba(214, 98, 145, 0.5);
+  }
+}
+
+/* Ensure the loading heart animation is smooth */
+@keyframes pulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+
+  50% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+}
+
+/* Remove default outline for elements that have custom focus styles */
+button,
+a {
+  outline: none;
+}

@@ -28,6 +28,10 @@ function getDiffDaysOnly() {
   return Math.floor((currentDate - startDate) / (1000 * 3600 * 24));
 }
 
+/**
+ * Calculates the difference between the current date and a start date in years, months, and days.
+ * @returns {{years: number, months: number, days: number}} An object containing the difference in years, months, and days.
+ */
 function getDiffYearMonthDay() {
   const currentDate = new Date();
   const startDate = new Date(SETTINGS.dateStart);
@@ -36,29 +40,27 @@ function getDiffYearMonthDay() {
     return { years: 0, months: 0, days: 0 };
   }
 
-  let y = currentDate.getFullYear() - startDate.getFullYear();
-  let m = currentDate.getMonth() - startDate.getMonth();
-  let d = currentDate.getDate() - startDate.getDate();
+  let years = currentDate.getFullYear() - startDate.getFullYear();
+  let months = currentDate.getMonth() - startDate.getMonth();
+  let days = currentDate.getDate() - startDate.getDate();
 
-  if (d < 0) {
-    m -= 1;
-    const tempDate = new Date(
-      currentDate.getFullYear(),
-      currentDate.getMonth(),
-      0
-    );
-    d = tempDate.getDate() + d;
+  // Adjust months and years if days are negative
+  if (days < 0) {
+    months--;
+    const prevMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+    days += prevMonthDate.getDate();
   }
 
-  if (m < 0) {
-    y -= 1;
-    m += 12;
+  // Adjust years if months are negative
+  if (months < 0) {
+    years--;
+    months += 12;
   }
 
   return {
-    years: Math.max(0, y),
-    months: Math.max(0, m),
-    days: Math.max(0, d),
+    years: Math.max(0, years),
+    months: Math.max(0, months),
+    days: Math.max(0, days),
   };
 }
 
@@ -182,27 +184,33 @@ class ParticlePool {
   }
 }
 
+/**
+ * Calculates a point on a heart shape curve.
+ * @param {number} t - The angle in radians.
+ * @param {number} [scale=1] - The scaling factor for the heart.
+ * @returns {Point} A Point object representing the coordinates on the heart curve.
+ */
+function getPointOnHeart(t, scale = 1) {
+  const baseScale = SETTINGS.heart.scale * scale;
+  return new Point(
+    baseScale * 160 * Math.pow(Math.sin(t), 3),
+    baseScale *
+      (130 * Math.cos(t) -
+        50 * Math.cos(2 * t) -
+        20 * Math.cos(3 * t) -
+        10 * Math.cos(4 * t) +
+        25)
+  );
+}
+
 function createHeartImage() {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   canvas.width = SETTINGS.particles.size;
   canvas.height = SETTINGS.particles.size;
 
-  function pointOnHeart(t, scale = 1) {
-    const baseScale = SETTINGS.heart.scale * scale;
-    return new Point(
-      baseScale * 160 * Math.pow(Math.sin(t), 3),
-      baseScale *
-        (130 * Math.cos(t) -
-          50 * Math.cos(2 * t) -
-          20 * Math.cos(3 * t) -
-          10 * Math.cos(4 * t) +
-          25)
-    );
-  }
-
   function to(t, scale = 1) {
-    const point = pointOnHeart(t, scale);
+    const point = getPointOnHeart(t, scale);
     point.x =
       SETTINGS.particles.size / 2 + (point.x * SETTINGS.particles.size) / 350;
     point.y =
@@ -238,19 +246,6 @@ function initCanvas(canvas) {
   let time;
   let heartScale = 1;
 
-  function pointOnHeart(t) {
-    const scale = SETTINGS.heart.scale * heartScale;
-    return new Point(
-      scale * 160 * Math.pow(Math.sin(t), 3),
-      scale *
-        (130 * Math.cos(t) -
-          50 * Math.cos(2 * t) -
-          20 * Math.cos(3 * t) -
-          10 * Math.cos(4 * t) +
-          25)
-    );
-  }
-
   function render() {
     requestAnimationFrame(render);
     const newTime = new Date().getTime() / 1000;
@@ -267,7 +262,7 @@ function initCanvas(canvas) {
 
     const amount = particleRate * deltaTime;
     for (let i = 0; i < amount; i++) {
-      const pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
+      const pos = getPointOnHeart(Math.PI - 2 * Math.PI * Math.random(), heartScale);
       const dir = pos.clone().length(SETTINGS.particles.velocity);
       particles.add(
         canvas.width / 2 + pos.x,
@@ -325,75 +320,75 @@ function initCanvas(canvas) {
 // Initialize canvas
 initCanvas(document.getElementById("pinkboard"));
 
-// Audio handling
-const audio = document.getElementById("bgMusic");
+/**
+ * Toggles the music playback (play/pause) and updates the UI accordingly.
+ */
+function toggleMusicPlayback() {
+  const musicControl = document.querySelector(".music-control");
+  const musicIcon = musicControl.querySelector("i");
 
-function handleAudioPlay() {
   if (audio.paused) {
-    audio.play().catch((error) => {
-      console.log("Không thể phát nhạc tự động:", error);
-    });
+    audio.play()
+      .then(() => {
+        musicControl.classList.add("playing");
+        musicControl.classList.remove("paused");
+        musicIcon.classList.remove("fa-play");
+        musicIcon.classList.add("fa-pause");
+      })
+      .catch((error) => {
+        console.error("Không thể phát nhạc:", error);
+      });
+  } else {
+    audio.pause();
+    musicControl.classList.remove("playing");
+    musicControl.classList.add("paused");
+    musicIcon.classList.remove("fa-pause");
+    musicIcon.classList.add("fa-play");
   }
 }
 
-// Thêm sự kiện cho toàn bộ document
-document.addEventListener("click", handleAudioPlay);
-document.addEventListener("touchstart", handleAudioPlay);
-document.addEventListener("keydown", handleAudioPlay);
+// Audio handling
+const audio = document.getElementById("bgMusic");
+
+// Event listeners to initiate audio playback on user interaction
+document.addEventListener("click", toggleMusicPlayback);
+document.addEventListener("touchstart", toggleMusicPlayback);
+document.addEventListener("keydown", toggleMusicPlayback);
 
 // Loading screen handling
 document.addEventListener("DOMContentLoaded", () => {
   const loadingScreen = document.querySelector(".loading-screen");
   const musicControl = document.querySelector(".music-control");
-  const musicIcon = musicControl.querySelector("i");
 
   // Hide loading screen after 2 seconds
   setTimeout(() => {
     loadingScreen.classList.add("fade-out");
   }, 2000);
 
-  // Music control handling
+  // Music control button click handler
   musicControl.addEventListener("click", (e) => {
-    e.stopPropagation(); // Ngăn sự kiện click lan truyền lên document
-    if (audio.paused) {
-      audio
-        .play()
-        .then(() => {
-          musicControl.classList.add("playing");
-          musicControl.classList.remove("paused");
-          musicIcon.classList.remove("fa-play");
-          musicIcon.classList.add("fa-pause");
-        })
-        .catch((error) => {
-          console.log("Không thể phát nhạc:", error);
-        });
-    } else {
-      audio.pause();
-      musicControl.classList.remove("playing");
-      musicControl.classList.add("paused");
-      musicIcon.classList.remove("fa-pause");
-      musicIcon.classList.add("fa-play");
-    }
+    e.stopPropagation(); // Prevent event from bubbling up to document
+    toggleMusicPlayback();
   });
 
-  // Update music control state
+  // Update music control state when audio play/pause events occur
   audio.addEventListener("play", () => {
     musicControl.classList.add("playing");
     musicControl.classList.remove("paused");
-    musicIcon.classList.remove("fa-play");
-    musicIcon.classList.add("fa-pause");
+    musicControl.querySelector("i").classList.remove("fa-play");
+    musicControl.querySelector("i").classList.add("fa-pause");
   });
 
   audio.addEventListener("pause", () => {
     musicControl.classList.remove("playing");
     musicControl.classList.add("paused");
-    musicIcon.classList.remove("fa-pause");
-    musicIcon.classList.add("fa-play");
+    musicControl.querySelector("i").classList.remove("fa-pause");
+    musicControl.querySelector("i").classList.add("fa-play");
   });
 
-  // Try to play music when page loads
+  // Attempt to play music when page loads (muted initially)
   audio.muted = false;
-  handleAudioPlay();
+  toggleMusicPlayback();
 });
 
 // Touch handling for display mode
@@ -411,3 +406,48 @@ canvas.addEventListener("touchend", (e) => {
     displayMode = (displayMode + 1) % 2;
   }
 });
+
+// Avatar change handling
+const maleAvatar = document.getElementById("avt-male");
+const femaleAvatar = document.getElementById("avt-female");
+const maleFileInput = document.getElementById("file-input-male");
+const femaleFileInput = document.getElementById("file-input-female");
+
+/**
+ * Handles the change event for file input, updates avatar, and saves to localStorage.
+ * @param {Event} event - The change event.
+ * @param {HTMLElement} avatarElement - The image element to update.
+ * @param {string} localStorageKey - The key for localStorage.
+ */
+function handleAvatarChange(event, avatarElement, localStorageKey) {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      avatarElement.src = e.target.result;
+      localStorage.setItem(localStorageKey, e.target.result);
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+maleAvatar.addEventListener("click", () => maleFileInput.click());
+femaleAvatar.addEventListener("click", () => femaleFileInput.click());
+
+maleFileInput.addEventListener("change", (e) =>
+  handleAvatarChange(e, maleAvatar, "maleAvatar")
+);
+femaleFileInput.addEventListener("change", (e) =>
+  handleAvatarChange(e, femaleAvatar, "femaleAvatar")
+);
+
+// Load saved avatars on page load
+const savedMaleAvatar = localStorage.getItem("maleAvatar");
+const savedFemaleAvatar = localStorage.getItem("femaleAvatar");
+
+if (savedMaleAvatar) {
+  maleAvatar.src = savedMaleAvatar;
+}
+if (savedFemaleAvatar) {
+  femaleAvatar.src = savedFemaleAvatar;
+}
