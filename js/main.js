@@ -350,11 +350,6 @@ function toggleMusicPlayback() {
 // Audio handling
 const audio = document.getElementById("bgMusic");
 
-// Event listeners to initiate audio playback on user interaction
-document.addEventListener("click", toggleMusicPlayback);
-document.addEventListener("touchstart", toggleMusicPlayback);
-document.addEventListener("keydown", toggleMusicPlayback);
-
 // Loading screen handling
 document.addEventListener("DOMContentLoaded", () => {
   const loadingScreen = document.querySelector(".loading-screen");
@@ -386,9 +381,14 @@ document.addEventListener("DOMContentLoaded", () => {
     musicControl.querySelector("i").classList.add("fa-play");
   });
 
-  // Attempt to play music when page loads (muted initially)
+  // Attempt to play music when page loads
   audio.muted = false;
-  toggleMusicPlayback();
+  audio.play().catch(error => {
+    console.error("Music autoplay failed:", error);
+    // Show play button if autoplay fails
+    musicControl.classList.add("paused");
+    musicControl.querySelector("i").classList.add("fa-play");
+  });
 });
 
 // Touch handling for display mode
