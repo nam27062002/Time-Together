@@ -83,9 +83,12 @@ function subscribeAvatar(userKey, avatarElement) {
     .doc(userKey)
     .onSnapshot((doc) => {
       if (doc.exists) {
-        const url = doc.data().current || doc.data().url; // hỗ trợ cấu trúc cũ
-        if (url) {
-          avatarElement.src = url;
+        const data = doc.data();
+        const currentUrl = data.current || data.url;
+        const historyArr = Array.isArray(data.history) ? data.history : (currentUrl ? [currentUrl] : []);
+
+        if (currentUrl) {
+          avatarElement.src = currentUrl;
         } else {
           // Nếu chưa có doc, thử lấy ảnh default trên Storage, nếu thất bại mới dùng ảnh local
           const defaultUrl = `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
@@ -101,6 +104,10 @@ function subscribeAvatar(userKey, avatarElement) {
               avatarElement.src = `img/${userKey}.jpg`;
             });
         }
+
+        // render gallery
+        const galleryEl = userKey === "male" ? maleGallery : femaleGallery;
+        renderGallery(userKey, galleryEl, historyArr, currentUrl);
       } else {
         // Nếu chưa có doc, thử lấy ảnh default trên Storage, nếu thất bại mới dùng ảnh local
         const defaultUrl = `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
@@ -115,6 +122,10 @@ function subscribeAvatar(userKey, avatarElement) {
           .catch(() => {
             avatarElement.src = `img/${userKey}.jpg`;
           });
+
+        // xóa gallery nếu không có dữ liệu
+        const galleryEl = userKey === "male" ? maleGallery : femaleGallery;
+        if (galleryEl) galleryEl.innerHTML = "";
       }
     });
 }
@@ -510,6 +521,10 @@ const femaleAvatar = document.getElementById("avt-female");
 const maleFileInput = document.getElementById("file-input-male");
 const femaleFileInput = document.getElementById("file-input-female");
 
+// Gallery containers
+const maleGallery = document.getElementById("male-gallery");
+const femaleGallery = document.getElementById("female-gallery");
+
 /**
  * Handles the change event for file input, updates avatar, and saves to localStorage.
  * @param {Event} event - The change event.
@@ -525,6 +540,34 @@ function handleAvatarChange(event, avatarElement, localStorageKey) {
       })
       .catch((err) => console.error("Upload avatar error:", err));
   }
+}
+
+/**
+ * Cập nhật gallery thumbnail và gắn sự kiện chọn avatar.
+ * @param {string} userKey "male" | "female"
+ * @param {HTMLElement} galleryEl
+ * @param {string[]} history
+ * @param {string} currentUrl
+ */
+function renderGallery(userKey, galleryEl, history, currentUrl) {
+  if (!galleryEl) return;
+  galleryEl.innerHTML = "";
+  history.forEach((url) => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "thumb" + (url === currentUrl ? " active" : "");
+    img.addEventListener("click", () => setCurrentAvatar(userKey, url));
+    galleryEl.appendChild(img);
+  });
+}
+
+/**
+ * Cập nhật current avatar trong Firestore.
+ * @param {string} userKey
+ * @param {string} url
+ */
+function setCurrentAvatar(userKey, url) {
+  db.collection("avatars").doc(userKey).update({ current: url }).catch(console.error);
 }
 
 maleAvatar.addEventListener("click", () => maleFileInput.click());

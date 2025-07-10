@@ -605,3 +605,32 @@ button,
 a {
   outline: none;
 }
+
+/* Avatar gallery */
+.gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  justify-content: center;
+}
+
+.gallery .thumb {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.gallery .thumb:hover {
+  transform: scale(1.05);
+  opacity: 1;
+}
+
+.gallery .thumb.active {
+  border: 2px solid var(--primary-color);
+  opacity: 1;
+}
