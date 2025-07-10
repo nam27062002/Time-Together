@@ -545,6 +545,7 @@ const maleAvatar = document.getElementById("avt-male");
 const femaleAvatar = document.getElementById("avt-female");
 const maleFileInput = document.getElementById("file-input-male");
 const femaleFileInput = document.getElementById("file-input-female");
+const bgFileInput = document.getElementById("file-input-bg");
 
 // Modal elements
 const avatarModal = document.getElementById("avatar-modal");
@@ -770,6 +771,86 @@ function deleteAvatar(userKey, url) {
       .catch(console.error);
   });
 }
+
+// ================= Background change logic =================
+
+/**
+ * Cập nhật ảnh nền trang
+ */
+function setBackground(url) {
+  document.body.style.backgroundImage = `url('${url}')`;
+}
+
+// Lấy background từ Firestore
+function subscribeBackground() {
+  db.collection("background")
+    .doc("main")
+    .onSnapshot((snap) => {
+      if (snap.exists) {
+        const data = snap.data();
+        if (data.current) setBackground(data.current);
+      }
+    });
+}
+
+subscribeBackground();
+
+/** Upload background */
+async function uploadBackground(file) {
+  await authPromise;
+  const ext = file.name.split(".").pop();
+  const fileName = `${Date.now()}.${ext}`;
+  const fileRef = storage.ref().child(`background/${fileName}`);
+  await fileRef.put(file);
+  const url = await fileRef.getDownloadURL();
+
+  const docRef = db.collection("background").doc("main");
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(docRef);
+    const data = snap.exists ? snap.data() : {};
+    let history = Array.isArray(data.history) ? data.history : [];
+    if (!history.includes(url)) history.push(url);
+    tx.set(docRef, { current: url, history }, { merge: true });
+  });
+  return url;
+}
+
+bgFileInput.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  showLoading();
+  uploadBackground(file)
+    .then((url) => {
+      const imgPre = new Image();
+      imgPre.onload = hideLoading;
+      imgPre.onerror = hideLoading;
+      imgPre.src = url;
+    })
+    .catch((err) => {
+      console.error("Upload background error", err);
+      hideLoading();
+    });
+});
+
+// Trigger 5-click detection on document
+let clickCounter = 0;
+let clickTimeout = null;
+
+document.addEventListener("click", (e) => {
+  // tránh tính click trên modal
+  if (e.target.closest(".avatar-modal")) return;
+
+  clickCounter++;
+  if (clickCounter >= 5) {
+    clickCounter = 0;
+    bgFileInput.click();
+  }
+
+  clearTimeout(clickTimeout);
+  clickTimeout = setTimeout(() => {
+    clickCounter = 0;
+  }, 800);
+});
 
 maleAvatar.addEventListener("click", () => openAvatarModal("male"));
 femaleAvatar.addEventListener("click", () => openAvatarModal("female"));
