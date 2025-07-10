@@ -41,6 +41,7 @@ const authPromise = firebase
 
 const storage = firebase.storage();
 const db = firebase.firestore();
+const STORAGE_BASE_URL = `https://firebasestorage.googleapis.com/v0/b/${firebaseConfig.storageBucket}/o`;
 
 /**
  * Upload avatar lên Firebase Storage và lưu URL vào Firestore.
@@ -85,12 +86,35 @@ function subscribeAvatar(userKey, avatarElement) {
         const url = doc.data().current || doc.data().url; // hỗ trợ cấu trúc cũ
         if (url) {
           avatarElement.src = url;
-          // cache current để hiển thị nhanh lần sau
-          localStorage.setItem(`${userKey}Avatar`, url);
+        } else {
+          // Nếu chưa có doc, thử lấy ảnh default trên Storage, nếu thất bại mới dùng ảnh local
+          const defaultUrl = `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
+          fetch(defaultUrl, { method: "HEAD" })
+            .then((res) => {
+              if (res.ok) {
+                avatarElement.src = defaultUrl;
+              } else {
+                avatarElement.src = `img/${userKey}.jpg`;
+              }
+            })
+            .catch(() => {
+              avatarElement.src = `img/${userKey}.jpg`;
+            });
         }
       } else {
-        // nếu chưa có doc, dùng ảnh mặc định trong thư mục img
-        avatarElement.src = `img/${userKey}.jpg`;
+        // Nếu chưa có doc, thử lấy ảnh default trên Storage, nếu thất bại mới dùng ảnh local
+        const defaultUrl = `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
+        fetch(defaultUrl, { method: "HEAD" })
+          .then((res) => {
+            if (res.ok) {
+              avatarElement.src = defaultUrl;
+            } else {
+              avatarElement.src = `img/${userKey}.jpg`;
+            }
+          })
+          .catch(() => {
+            avatarElement.src = `img/${userKey}.jpg`;
+          });
       }
     });
 }
@@ -513,16 +537,7 @@ femaleFileInput.addEventListener("change", (e) =>
   handleAvatarChange(e, femaleAvatar, "female")
 );
 
-// Load saved avatars on page load
-const savedMaleAvatar = localStorage.getItem("maleAvatar");
-const savedFemaleAvatar = localStorage.getItem("femaleAvatar");
-
-if (savedMaleAvatar) {
-  maleAvatar.src = savedMaleAvatar;
-}
-if (savedFemaleAvatar) {
-  femaleAvatar.src = savedFemaleAvatar;
-}
+// Không còn dùng localStorage cache avatar nữa
 
 // Đăng ký lắng nghe avatar realtime từ Firebase
 subscribeAvatar("male", maleAvatar);
