@@ -1,1 +1,1 @@
-powershell -ExecutionPolicy Bypass -File "D:\Time-Together\scripts\upload_default_avatars.ps1"
+git a

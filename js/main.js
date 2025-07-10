@@ -65,8 +65,10 @@ async function uploadAvatar(file, userKey) {
   await db.runTransaction(async (tx) => {
     const snapshot = await tx.get(docRef);
     const data = snapshot.exists ? snapshot.data() : {};
-    const history = Array.isArray(data.history) ? data.history : [];
-    history.push(url);
+    let history = Array.isArray(data.history) ? data.history : [];
+    if (!history.includes(url)) {
+      history.push(url);
+    }
     tx.set(docRef, { current: url, history }, { merge: true });
   });
 
@@ -572,13 +574,15 @@ function handleAvatarChange(event, avatarElement, localStorageKey) {
 function renderGallery(userKey, galleryEl, history, currentUrl) {
   if (!galleryEl) return;
   galleryEl.innerHTML = "";
-  history.forEach((url) => {
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "thumb" + (url === currentUrl ? " active" : "");
-    img.addEventListener("click", () => setCurrentAvatar(userKey, url));
-    galleryEl.appendChild(img);
-  });
+  history
+    .filter((url) => url && url !== currentUrl)
+    .forEach((url) => {
+      const img = document.createElement("img");
+      img.src = url;
+      img.className = "thumb";
+      img.addEventListener("click", () => setCurrentAvatar(userKey, url));
+      galleryEl.appendChild(img);
+    });
 }
 
 /**
