@@ -531,9 +531,78 @@ const femaleAvatar = document.getElementById("avt-female");
 const maleFileInput = document.getElementById("file-input-male");
 const femaleFileInput = document.getElementById("file-input-female");
 
-// Gallery containers
-const maleGallery = document.getElementById("male-gallery");
-const femaleGallery = document.getElementById("female-gallery");
+// Modal elements
+const avatarModal = document.getElementById("avatar-modal");
+const modalGallery = document.getElementById("modal-gallery");
+const closeModalBtn = document.getElementById("close-modal-btn");
+const uploadNewBtn = document.getElementById("upload-new-btn");
+
+let currentUserKey = null;
+
+function openAvatarModal(userKey) {
+  currentUserKey = userKey;
+  avatarModal.classList.remove("hidden");
+  fetchAvatarHistory(userKey).then(({ history, current }) => {
+    renderModalGallery(userKey, history, current);
+  });
+}
+
+function hideAvatarModal() {
+  avatarModal.classList.add("hidden");
+}
+
+closeModalBtn.addEventListener("click", hideAvatarModal);
+
+uploadNewBtn.addEventListener("click", () => {
+  if (!currentUserKey) return;
+  if (currentUserKey === "male") {
+    maleFileInput.click();
+  } else {
+    femaleFileInput.click();
+  }
+});
+
+/**
+ * Tải dữ liệu avatar (current & history) cho modal
+ */
+function fetchAvatarHistory(userKey) {
+  return db
+    .collection("avatars")
+    .doc(userKey)
+    .get()
+    .then((snap) => {
+      if (!snap.exists) return { current: null, history: [] };
+      const data = snap.data();
+      return {
+        current: data.current || data.url || null,
+        history: Array.isArray(data.history) ? data.history : [],
+      };
+    });
+}
+
+function renderModalGallery(userKey, history, currentUrl) {
+  modalGallery.innerHTML = "";
+  const urls = [];
+  if (currentUrl) urls.push(currentUrl);
+  history.forEach((u) => {
+    if (u && !urls.includes(u)) urls.push(u);
+  });
+
+  urls.forEach((url) => {
+    const img = document.createElement("img");
+    img.src = url;
+    img.className = "thumb" + (url === currentUrl ? " active" : "");
+    img.addEventListener("click", () => {
+      setCurrentAvatar(userKey, url);
+      hideAvatarModal();
+    });
+    modalGallery.appendChild(img);
+  });
+}
+
+// Gallery containers (now null because inline gallery removed)
+const maleGallery = null;
+const femaleGallery = null;
 
 /**
  * Handles the change event for file input, updates avatar, and saves to localStorage.
@@ -560,6 +629,7 @@ function handleAvatarChange(event, avatarElement, localStorageKey) {
       .catch((err) => {
         console.error("Upload avatar error:", err);
         if (typeof hideLoading === "function") hideLoading();
+        hideAvatarModal();
       });
   }
 }
@@ -594,8 +664,8 @@ function setCurrentAvatar(userKey, url) {
   db.collection("avatars").doc(userKey).update({ current: url }).catch(console.error);
 }
 
-maleAvatar.addEventListener("click", () => maleFileInput.click());
-femaleAvatar.addEventListener("click", () => femaleFileInput.click());
+maleAvatar.addEventListener("click", () => openAvatarModal("male"));
+femaleAvatar.addEventListener("click", () => openAvatarModal("female"));
 
 maleFileInput.addEventListener("change", (e) =>
   handleAvatarChange(e, maleAvatar, "male")

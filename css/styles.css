@@ -635,3 +635,48 @@ a {
   border: 2px solid var(--primary-color);
   opacity: 1;
 }
+
+.avatar-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+}
+
+.avatar-modal.hidden {
+  display: none;
+}
+
+.avatar-modal-content {
+  background: #111;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+  text-align: center;
+}
+
+.modal-btn {
+  margin-top: 10px;
+  padding: 8px 16px;
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.modal-btn:hover {
+  background: #c14d7b;
+}
+
+/* Ẩn gallery inline nếu còn trong DOM */
+#male-gallery,
+#female-gallery {
+  display: none !important;
+}
