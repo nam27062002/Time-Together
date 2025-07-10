@@ -21,6 +21,79 @@ const SETTINGS = {
 };
 
 let displayMode = 0;
+// ===================== Firebase setup =====================
+const firebaseConfig = {
+  apiKey: "AIzaSyC5N4vOJagEL30iNZlr2qJa0H_Uec-VS18",
+  authDomain: "time-together-e4930.firebaseapp.com",
+  projectId: "time-together-e4930",
+  storageBucket: "time-together-e4930.firebasestorage.app",
+  messagingSenderId: "212578067416",
+  appId: "1:212578067416:web:6f3a2cb736a92716ae48ad",
+  measurementId: "G-YDQS32T003",
+};
+
+// Khởi tạo Firebase
+firebase.initializeApp(firebaseConfig);
+const authPromise = firebase
+  .auth()
+  .signInAnonymously()
+  .catch((e) => console.error("Firebase auth error:", e));
+
+const storage = firebase.storage();
+const db = firebase.firestore();
+
+/**
+ * Upload avatar lên Firebase Storage và lưu URL vào Firestore.
+ * @param {File} file
+ * @param {string} userKey "male" | "female"
+ * @returns {Promise<string>} URL download
+ */
+async function uploadAvatar(file, userKey) {
+  // Đảm bảo đã đăng nhập ẩn danh xong
+  await authPromise;
+
+  // Tạo tên file duy nhất theo timestamp để không ghi đè ảnh cũ
+  const ext = file.name.split(".").pop();
+  const fileName = `${Date.now()}.${ext}`;
+  const fileRef = storage.ref().child(`avatars/${userKey}/${fileName}`);
+  await fileRef.put(file);
+  const url = await fileRef.getDownloadURL();
+
+  // Thêm url mới vào history và đặt thành current
+  const docRef = db.collection("avatars").doc(userKey);
+  await db.runTransaction(async (tx) => {
+    const snapshot = await tx.get(docRef);
+    const data = snapshot.exists ? snapshot.data() : {};
+    const history = Array.isArray(data.history) ? data.history : [];
+    history.push(url);
+    tx.set(docRef, { current: url, history }, { merge: true });
+  });
+
+  return url;
+}
+
+/**
+ * Lắng nghe thay đổi avatar realtime và cập nhật ảnh.
+ * @param {string} userKey
+ * @param {HTMLImageElement} avatarElement
+ */
+function subscribeAvatar(userKey, avatarElement) {
+  db.collection("avatars")
+    .doc(userKey)
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        const url = doc.data().current || doc.data().url; // hỗ trợ cấu trúc cũ
+        if (url) {
+          avatarElement.src = url;
+          // cache current để hiển thị nhanh lần sau
+          localStorage.setItem(`${userKey}Avatar`, url);
+        }
+      } else {
+        // nếu chưa có doc, dùng ảnh mặc định trong thư mục img
+        avatarElement.src = `img/${userKey}.jpg`;
+      }
+    });
+}
 
 function getDiffDaysOnly() {
   const currentDate = new Date();
@@ -422,12 +495,11 @@ const femaleFileInput = document.getElementById("file-input-female");
 function handleAvatarChange(event, avatarElement, localStorageKey) {
   const file = event.target.files[0];
   if (file) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      avatarElement.src = e.target.result;
-      localStorage.setItem(localStorageKey, e.target.result);
-    };
-    reader.readAsDataURL(file);
+    uploadAvatar(file, localStorageKey)
+      .then((url) => {
+        avatarElement.src = url;
+      })
+      .catch((err) => console.error("Upload avatar error:", err));
   }
 }
 
@@ -435,10 +507,10 @@ maleAvatar.addEventListener("click", () => maleFileInput.click());
 femaleAvatar.addEventListener("click", () => femaleFileInput.click());
 
 maleFileInput.addEventListener("change", (e) =>
-  handleAvatarChange(e, maleAvatar, "maleAvatar")
+  handleAvatarChange(e, maleAvatar, "male")
 );
 femaleFileInput.addEventListener("change", (e) =>
-  handleAvatarChange(e, femaleAvatar, "femaleAvatar")
+  handleAvatarChange(e, femaleAvatar, "female")
 );
 
 // Load saved avatars on page load
@@ -451,3 +523,7 @@ if (savedMaleAvatar) {
 if (savedFemaleAvatar) {
   femaleAvatar.src = savedFemaleAvatar;
 }
+
+// Đăng ký lắng nghe avatar realtime từ Firebase
+subscribeAvatar("male", maleAvatar);
+subscribeAvatar("female", femaleAvatar);

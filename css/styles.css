@@ -18,7 +18,7 @@ body {
   font-family: "Poppins", sans-serif;
   overflow: hidden;
   background-color: #000;
-  background-image: url('img/bg_phone.jpg');
+  background-image: url('../img/bg_phone.jpg');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -28,7 +28,7 @@ body {
 
 @media (min-width: 769px) {
   body {
-    background-image: url('img/bg_pc.jpg');
+    background-image: url('../img/bg_pc.jpg');
   }
 }
 
