@@ -571,12 +571,19 @@ function fetchAvatarHistory(userKey) {
     .doc(userKey)
     .get()
     .then((snap) => {
-      if (!snap.exists) return { current: null, history: [] };
+      const defaultUrl = `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
+
+      if (!snap.exists) {
+        return { current: defaultUrl, history: [] };
+      }
+
       const data = snap.data();
-      return {
-        current: data.current || data.url || null,
-        history: Array.isArray(data.history) ? data.history : [],
-      };
+      const current = data.current || data.url || defaultUrl;
+      let history = Array.isArray(data.history) ? data.history : [];
+      if (!history.includes(defaultUrl)) {
+        history.unshift(defaultUrl);
+      }
+      return { current, history };
     });
 }
 
@@ -589,6 +596,9 @@ function renderModalGallery(userKey, history, currentUrl) {
   });
 
   urls.forEach((url) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "thumb-wrapper";
+
     const img = document.createElement("img");
     img.src = url;
     img.className = "thumb" + (url === currentUrl ? " active" : "");
@@ -596,7 +606,22 @@ function renderModalGallery(userKey, history, currentUrl) {
       setCurrentAvatar(userKey, url);
       hideAvatarModal();
     });
-    modalGallery.appendChild(img);
+    wrapper.appendChild(img);
+
+    // nút xoá, trừ default
+    const defaultUrl = getDefaultUrl(userKey);
+    if (url !== defaultUrl) {
+      const delBtn = document.createElement("button");
+      delBtn.className = "delete-btn";
+      delBtn.textContent = "×";
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        deleteAvatar(userKey, url);
+      });
+      wrapper.appendChild(delBtn);
+    }
+
+    modalGallery.appendChild(wrapper);
   });
 }
 
@@ -662,6 +687,44 @@ function renderGallery(userKey, galleryEl, history, currentUrl) {
  */
 function setCurrentAvatar(userKey, url) {
   db.collection("avatars").doc(userKey).update({ current: url }).catch(console.error);
+}
+
+function getDefaultUrl(userKey) {
+  return `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
+}
+
+/**
+ * Xoá avatar khỏi Storage và Firestore history (không áp dụng với default).
+ */
+function deleteAvatar(userKey, url) {
+  const defaultUrl = getDefaultUrl(userKey);
+  if (url === defaultUrl) return; // không xoá default
+
+  if (!confirm("Bạn có chắc muốn xoá ảnh này?")) return;
+
+  // 1. Xoá file khỏi Storage
+  storage
+    .refFromURL(url)
+    .delete()
+    .catch((err) => console.error("Delete storage error", err));
+
+  // 2. Cập nhật Firestore
+  const docRef = db.collection("avatars").doc(userKey);
+  db.runTransaction(async (tx) => {
+    const snap = await tx.get(docRef);
+    if (!snap.exists) return;
+    let data = snap.data();
+    let history = Array.isArray(data.history) ? data.history : [];
+    history = history.filter((u) => u !== url);
+
+    // Nếu url đang là current -> chuyển về default hoặc phần tử đầu tiên còn lại
+    let current = data.current;
+    if (current === url) {
+      current = history.length ? history[0] : defaultUrl;
+    }
+
+    tx.set(docRef, { history, current }, { merge: true });
+  }).catch(console.error);
 }
 
 maleAvatar.addEventListener("click", () => openAvatarModal("male"));
