@@ -463,9 +463,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const loadingScreen = document.querySelector(".loading-screen");
   const musicControl = document.querySelector(".music-control");
 
+  // Helper functions
+  window.showLoading = () => {
+    loadingScreen.classList.remove("fade-out");
+  };
+  window.hideLoading = () => {
+    loadingScreen.classList.add("fade-out");
+  };
+
   // Hide loading screen after 2 seconds
   setTimeout(() => {
-    loadingScreen.classList.add("fade-out");
+    hideLoading();
   }, 2000);
 
   // Music control button click handler
@@ -534,11 +542,23 @@ const femaleGallery = document.getElementById("female-gallery");
 function handleAvatarChange(event, avatarElement, localStorageKey) {
   const file = event.target.files[0];
   if (file) {
+    if (typeof showLoading === "function") showLoading();
     uploadAvatar(file, localStorageKey)
       .then((url) => {
-        avatarElement.src = url;
+        // đợi ảnh tải xong mới ẩn loading
+        const imgPreload = new Image();
+        imgPreload.onload = () => {
+          if (typeof hideLoading === "function") hideLoading();
+        };
+        imgPreload.onerror = () => {
+          if (typeof hideLoading === "function") hideLoading();
+        };
+        imgPreload.src = url;
       })
-      .catch((err) => console.error("Upload avatar error:", err));
+      .catch((err) => {
+        console.error("Upload avatar error:", err);
+        if (typeof hideLoading === "function") hideLoading();
+      });
   }
 }
 
