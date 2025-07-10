@@ -514,14 +514,19 @@ document.addEventListener("DOMContentLoaded", () => {
     musicControl.querySelector("i").classList.add("fa-play");
   });
 
-  // Attempt to play music when page loads
-  audio.muted = false;
-  audio.play().catch(error => {
-    console.error("Music autoplay failed:", error);
-    // Show play button if autoplay fails
-    musicControl.classList.add("paused");
-    musicControl.querySelector("i").classList.add("fa-play");
-  });
+  // Attempt silent autoplay: start muted
+  audio.muted = true;
+  audio.play().catch(() => {}); // ignore errors in silent mode
+
+  // On first user interaction, unmute and play if paused
+  const resumeAudio = () => {
+    audio.muted = false;
+    if (audio.paused) {
+      audio.play().catch(() => {});
+    }
+    document.removeEventListener("pointerdown", resumeAudio);
+  };
+  document.addEventListener("pointerdown", resumeAudio, { once: true });
 });
 
 // Touch handling for display mode
@@ -778,7 +783,18 @@ function deleteAvatar(userKey, url) {
  * Cập nhật ảnh nền trang
  */
 function setBackground(url) {
-  document.body.style.backgroundImage = `url('${url}')`;
+  document.body.style.setProperty("background-image", `url('${url}')`, "important");
+}
+
+function preloadBackground(url) {
+  showLoading();
+  const img = new Image();
+  img.onload = () => {
+    setBackground(url);
+    hideLoading();
+  };
+  img.onerror = hideLoading;
+  img.src = url;
 }
 
 // Lấy background từ Firestore
@@ -788,7 +804,7 @@ function subscribeBackground() {
     .onSnapshot((snap) => {
       if (snap.exists) {
         const data = snap.data();
-        if (data.current) setBackground(data.current);
+        if (data.current) preloadBackground(data.current);
       }
     });
 }
@@ -821,10 +837,7 @@ bgFileInput.addEventListener("change", (e) => {
   showLoading();
   uploadBackground(file)
     .then((url) => {
-      const imgPre = new Image();
-      imgPre.onload = hideLoading;
-      imgPre.onerror = hideLoading;
-      imgPre.src = url;
+      preloadBackground(url);
     })
     .catch((err) => {
       console.error("Upload background error", err);
