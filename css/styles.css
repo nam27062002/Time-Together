@@ -608,29 +608,27 @@ a {
 }
 
 /* Avatar gallery */
+/* Gallery grid */
 .gallery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 80px);
+  gap: 10px;
+  margin-top: 12px;
   justify-content: center;
 }
-
 .gallery .thumb {
-  width: 60px;
-  height: 60px;
+  width: 80px;
+  height: 80px;
   object-fit: cover;
   border-radius: 50%;
   cursor: pointer;
-  opacity: 0.8;
+  opacity: 0.85;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
-
 .gallery .thumb:hover {
   transform: scale(1.05);
   opacity: 1;
 }
-
 .gallery .thumb.active {
   border: 2px solid var(--primary-color);
   opacity: 1;
@@ -645,13 +643,13 @@ a {
   position: absolute;
   top: -6px;
   right: -6px;
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   background: rgba(0, 0, 0, 0.7);
   color: #fff;
   border: none;
   border-radius: 50%;
-  font-size: 12px;
+  font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -678,18 +676,20 @@ a {
 }
 
 .avatar-modal-content {
-  background: #111;
-  padding: 20px;
-  border-radius: 10px;
-  max-width: 90vw;
+  background: #1a1a1a;
+  padding: 24px;
+  border-radius: 12px;
+  max-width: 600px;
+  width: 90%;
   max-height: 90vh;
   overflow: auto;
   text-align: center;
+  box-shadow: 0 0 25px rgba(0,0,0,0.6);
 }
 
 .modal-btn {
   margin-top: 10px;
-  padding: 8px 16px;
+  padding: 10px 20px;
   background: var(--primary-color);
   color: #fff;
   border: none;
@@ -700,6 +700,12 @@ a {
 
 .modal-btn:hover {
   background: #c14d7b;
+}
+
+@media (max-width: 480px) {
+  .modal-btn {
+    width: 100%;
+  }
 }
 
 /* Ẩn gallery inline nếu còn trong DOM */

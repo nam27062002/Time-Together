@@ -473,10 +473,25 @@ document.addEventListener("DOMContentLoaded", () => {
     loadingScreen.classList.add("fade-out");
   };
 
-  // Hide loading screen after 2 seconds
-  setTimeout(() => {
-    hideLoading();
-  }, 2000);
+  showLoading();
+
+  // Chỉ ẩn loading khi 2 avatar chính đã load hoặc sau 6s fallback
+  let avatarLoadedCount = 0;
+  const checkAvatarLoaded = () => {
+    avatarLoadedCount++;
+    if (avatarLoadedCount >= 2) hideLoading();
+  };
+
+  [maleAvatar, femaleAvatar].forEach((img) => {
+    if (img.complete) {
+      checkAvatarLoaded();
+    } else {
+      img.addEventListener("load", checkAvatarLoaded);
+      img.addEventListener("error", checkAvatarLoaded);
+    }
+  });
+
+  setTimeout(hideLoading, 6000);
 
   // Music control button click handler
   musicControl.addEventListener("click", (e) => {
@@ -537,6 +552,30 @@ const modalGallery = document.getElementById("modal-gallery");
 const closeModalBtn = document.getElementById("close-modal-btn");
 const uploadNewBtn = document.getElementById("upload-new-btn");
 
+// Confirm modal elements
+const confirmModal = document.getElementById("confirm-modal");
+const confirmYesBtn = document.getElementById("confirm-yes");
+const confirmNoBtn = document.getElementById("confirm-no");
+
+function showConfirm() {
+  return new Promise((resolve) => {
+    confirmModal.classList.remove("hidden");
+
+    const cleanup = (result) => {
+      confirmModal.classList.add("hidden");
+      confirmYesBtn.removeEventListener("click", yesHandler);
+      confirmNoBtn.removeEventListener("click", noHandler);
+      resolve(result);
+    };
+
+    const yesHandler = () => cleanup(true);
+    const noHandler = () => cleanup(false);
+
+    confirmYesBtn.addEventListener("click", yesHandler);
+    confirmNoBtn.addEventListener("click", noHandler);
+  });
+}
+
 let currentUserKey = null;
 
 function openAvatarModal(userKey) {
@@ -554,6 +593,7 @@ function hideAvatarModal() {
 closeModalBtn.addEventListener("click", hideAvatarModal);
 
 uploadNewBtn.addEventListener("click", () => {
+  hideAvatarModal();
   if (!currentUserKey) return;
   if (currentUserKey === "male") {
     maleFileInput.click();
@@ -700,31 +740,35 @@ function deleteAvatar(userKey, url) {
   const defaultUrl = getDefaultUrl(userKey);
   if (url === defaultUrl) return; // không xoá default
 
-  if (!confirm("Bạn có chắc muốn xoá ảnh này?")) return;
+  showConfirm().then((ok) => {
+    if (!ok) return;
 
-  // 1. Xoá file khỏi Storage
-  storage
-    .refFromURL(url)
-    .delete()
-    .catch((err) => console.error("Delete storage error", err));
+    // 1. Xoá file khỏi Storage
+    storage
+      .refFromURL(url)
+      .delete()
+      .catch((err) => console.error("Delete storage error", err));
 
-  // 2. Cập nhật Firestore
-  const docRef = db.collection("avatars").doc(userKey);
-  db.runTransaction(async (tx) => {
-    const snap = await tx.get(docRef);
-    if (!snap.exists) return;
-    let data = snap.data();
-    let history = Array.isArray(data.history) ? data.history : [];
-    history = history.filter((u) => u !== url);
+    // 2. Cập nhật Firestore
+    const docRef = db.collection("avatars").doc(userKey);
+    db.runTransaction(async (tx) => {
+      const snap = await tx.get(docRef);
+      if (!snap.exists) return;
+      let data = snap.data();
+      let history = Array.isArray(data.history) ? data.history : [];
+      history = history.filter((u) => u !== url);
 
-    // Nếu url đang là current -> chuyển về default hoặc phần tử đầu tiên còn lại
-    let current = data.current;
-    if (current === url) {
-      current = history.length ? history[0] : defaultUrl;
-    }
+      // Nếu url đang là current -> chuyển về default hoặc phần tử đầu tiên còn lại
+      let current = data.current;
+      if (current === url) {
+        current = history.length ? history[0] : defaultUrl;
+      }
 
-    tx.set(docRef, { history, current }, { merge: true });
-  }).catch(console.error);
+      tx.set(docRef, { history, current }, { merge: true });
+    })
+      .then(() => hideAvatarModal())
+      .catch(console.error);
+  });
 }
 
 maleAvatar.addEventListener("click", () => openAvatarModal("male"));
