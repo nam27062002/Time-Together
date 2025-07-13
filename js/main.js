@@ -460,10 +460,29 @@ function toggleMusicPlayback() {
 // Audio handling
 const audio = document.getElementById("bgMusic");
 
+// Danh sách các tệp nhạc trong thư mục music/
+const musicFiles = [
+  "music/ANH LA NGOAI LÊ CUA EM - PHƯƠNG LY - OFFICIAL MV.mp3",
+  "music/HOÀNG TÔN - YÊU EM RẤT NHIỀU (Lyrics Video).mp3",
+  "music/Lady Gaga, Bruno Mars - Die With A Smile (Official Music Video).mp3",
+  "music/NƠI NÀY CÓ ANH - OFFICIAL MUSIC VIDEO - SƠN TÙNG M-TP.mp3",
+  "music/THƯƠNG EM ĐẾN GIÀ - LÊ BẢO BÌNH - OFFICIAL MUSIC VIDEO.mp3",
+  "music/music.mp3"
+];
+
+// Hàm chọn ngẫu nhiên một bài hát và đặt làm nguồn cho thẻ audio
+function setRandomMusic() {
+  const randomIndex = Math.floor(Math.random() * musicFiles.length);
+  audio.src = musicFiles[randomIndex];
+}
+
 // Loading screen handling
 document.addEventListener("DOMContentLoaded", () => {
   const loadingScreen = document.querySelector(".loading-screen");
   const musicControl = document.querySelector(".music-control");
+
+  // Gọi hàm để đặt nhạc ngẫu nhiên khi trang tải
+  setRandomMusic();
 
   // Helper functions
   window.showLoading = () => {
