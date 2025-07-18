@@ -27,19 +27,34 @@
     <!-- Âm nhạc nền -->
     <audio id="bgMusic" src="music/music.mp3" preload="auto" loop></audio>
     <!-- Input ẩn chọn background -->
-    <input type="file" id="file-input-bg" accept="image/*" style="display:none;" />
+    <input
+      type="file"
+      id="file-input-bg"
+      accept="image/*"
+      style="display: none"
+    />
     <div id="overlay"></div>
     <main id="info">
       <div class="profile one">
         <img src="img/male.jpg" class="avt" id="avt-male" alt="Trọng Nam" />
         <p class="t_name">Trọng Nam</p>
-        <input type="file" id="file-input-male" accept="image/*" style="display: none;" />
+        <input
+          type="file"
+          id="file-input-male"
+          accept="image/*"
+          style="display: none"
+        />
       </div>
       <canvas id="pinkboard" width="300" height="300"></canvas>
       <div class="profile two">
         <img src="img/female.jpg" class="avt" id="avt-female" alt="Bích Ngọc" />
         <p class="t_name">Bích Ngọc</p>
-        <input type="file" id="file-input-female" accept="image/*" style="display: none;" />
+        <input
+          type="file"
+          id="file-input-female"
+          accept="image/*"
+          style="display: none"
+        />
       </div>
     </main>
     <!-- Modal chọn avatar -->
@@ -54,13 +69,17 @@
     <!-- Modal xác nhận xoá -->
     <div id="confirm-modal" class="avatar-modal hidden">
       <div class="avatar-modal-content">
-        <p id="confirm-text" style="color:#fff;margin-bottom:12px;">Bạn muốn xoá ảnh này?</p>
+        <p id="confirm-text" style="color: #fff; margin-bottom: 12px">
+          Bạn muốn xoá ảnh này?
+        </p>
         <button id="confirm-yes" class="modal-btn">Xoá</button>
-        <button id="confirm-no"  class="modal-btn">Huỷ</button>
+        <button id="confirm-no" class="modal-btn">Huỷ</button>
       </div>
     </div>
     <div class="music-control">
-      <span class="tooltip">Bật/Tắt nhạc</span>
+      <span class="tooltip"
+        >Tap: Bật/Tắt • Double tap: Random • Long press: Next</span
+      >
       <i class="fas fa-play"></i>
     </div>
     <!-- Firebase SDK -->

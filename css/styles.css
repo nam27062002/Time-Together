@@ -266,17 +266,31 @@ body {
 .music-control .tooltip {
   position: absolute;
   bottom: 100%;
-  right: 0;
-  background: rgba(0, 0, 0, 0.8);
+  right: 50%;
+  transform: translateX(50%);
+  background: rgba(0, 0, 0, 0.9);
   color: white;
-  padding: 5px 10px;
-  border-radius: 5px;
-  font-size: 12px;
-  margin-bottom: 5px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  margin-bottom: 8px;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
   white-space: nowrap;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1001;
+}
+
+@media (max-width: 768px) {
+  .music-control .tooltip {
+    font-size: 10px;
+    padding: 6px 10px;
+    right: 0;
+    transform: translateX(0);
+  }
 }
 
 .music-control:hover .tooltip {
@@ -616,6 +630,7 @@ a {
   margin-top: 12px;
   justify-content: center;
 }
+
 .gallery .thumb {
   width: 80px;
   height: 80px;
@@ -625,10 +640,12 @@ a {
   opacity: 0.85;
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
+
 .gallery .thumb:hover {
   transform: scale(1.05);
   opacity: 1;
 }
+
 .gallery .thumb.active {
   border: 2px solid var(--primary-color);
   opacity: 1;
@@ -684,7 +701,7 @@ a {
   max-height: 90vh;
   overflow: auto;
   text-align: center;
-  box-shadow: 0 0 25px rgba(0,0,0,0.6);
+  box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
 }
 
 .modal-btn {
@@ -712,4 +729,46 @@ a {
 #male-gallery,
 #female-gallery {
   display: none !important;
+}
+
+/* Music title display */
+.music-title-display {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: var(--primary-color);
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  z-index: 1000;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(214, 98, 145, 0.3);
+  box-shadow: 0 0 20px rgba(214, 98, 145, 0.4);
+  max-width: 80vw;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.music-title-display.fade-in {
+  opacity: 1;
+}
+
+.music-title-display.fade-out {
+  opacity: 0;
+}
+
+@media (max-width: 768px) {
+  .music-title-display {
+    font-size: 14px;
+    padding: 10px 20px;
+    max-width: 90vw;
+  }
 }

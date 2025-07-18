@@ -87,7 +87,11 @@ function subscribeAvatar(userKey, avatarElement) {
       if (doc.exists) {
         const data = doc.data();
         const currentUrl = data.current || data.url;
-        const historyArr = Array.isArray(data.history) ? data.history : (currentUrl ? [currentUrl] : []);
+        const historyArr = Array.isArray(data.history)
+          ? data.history
+          : currentUrl
+          ? [currentUrl]
+          : [];
 
         if (currentUrl) {
           avatarElement.src = currentUrl;
@@ -157,7 +161,11 @@ function getDiffYearMonthDay() {
   // Adjust months and years if days are negative
   if (days < 0) {
     months--;
-    const prevMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+    const prevMonthDate = new Date(
+      currentDate.getFullYear(),
+      currentDate.getMonth(),
+      0
+    );
     days += prevMonthDate.getDate();
   }
 
@@ -372,7 +380,10 @@ function initCanvas(canvas) {
 
     const amount = particleRate * deltaTime;
     for (let i = 0; i < amount; i++) {
-      const pos = getPointOnHeart(Math.PI - 2 * Math.PI * Math.random(), heartScale);
+      const pos = getPointOnHeart(
+        Math.PI - 2 * Math.PI * Math.random(),
+        heartScale
+      );
       const dir = pos.clone().length(SETTINGS.particles.velocity);
       particles.add(
         canvas.width / 2 + pos.x,
@@ -438,7 +449,8 @@ function toggleMusicPlayback() {
   const musicIcon = musicControl.querySelector("i");
 
   if (audio.paused) {
-    audio.play()
+    audio
+      .play()
       .then(() => {
         musicControl.classList.add("playing");
         musicControl.classList.remove("paused");
@@ -462,18 +474,90 @@ const audio = document.getElementById("bgMusic");
 
 // Danh sách các tệp nhạc trong thư mục music/
 const musicFiles = [
-  "music/ANH LA NGOAI LÊ CUA EM - PHƯƠNG LY - OFFICIAL MV.mp3",
-  "music/HOÀNG TÔN - YÊU EM RẤT NHIỀU (Lyrics Video).mp3",
-  "music/Lady Gaga, Bruno Mars - Die With A Smile (Official Music Video).mp3",
-  "music/NƠI NÀY CÓ ANH - OFFICIAL MUSIC VIDEO - SƠN TÙNG M-TP.mp3",
-  "music/THƯƠNG EM ĐẾN GIÀ - LÊ BẢO BÌNH - OFFICIAL MUSIC VIDEO.mp3",
-  "music/music.mp3"
+  {
+    src: "music/ANH LA NGOAI LÊ CUA EM - PHƯƠNG LY - OFFICIAL MV.mp3",
+    title: "Anh Là Ngoại Lệ Của Em",
+  },
+  {
+    src: "music/HOÀNG TÔN - YÊU EM RẤT NHIỀU (Lyrics Video).mp3",
+    title: "Yêu Em Rất Nhiều",
+  },
+  {
+    src: "music/Lady Gaga, Bruno Mars - Die With A Smile (Official Music Video).mp3",
+    title: "Die With A Smile",
+  },
+  {
+    src: "music/NƠI NÀY CÓ ANH - OFFICIAL MUSIC VIDEO - SƠN TÙNG M-TP.mp3",
+    title: "Nơi Này Có Anh",
+  },
+  {
+    src: "music/THƯƠNG EM ĐẾN GIÀ - LÊ BẢO BÌNH - OFFICIAL MUSIC VIDEO.mp3",
+    title: "Thương Em Đến Già",
+  },
+  {
+    src: "music/music.mp3",
+    title: "Lễ Đường",
+  },
 ];
+
+let currentMusicIndex = 0;
 
 // Hàm chọn ngẫu nhiên một bài hát và đặt làm nguồn cho thẻ audio
 function setRandomMusic() {
   const randomIndex = Math.floor(Math.random() * musicFiles.length);
-  audio.src = musicFiles[randomIndex];
+  currentMusicIndex = randomIndex;
+  audio.src = musicFiles[currentMusicIndex].src;
+}
+
+// Hàm chuyển bài tiếp theo
+function nextMusic() {
+  currentMusicIndex = (currentMusicIndex + 1) % musicFiles.length;
+  const wasPlaying = !audio.paused;
+  audio.src = musicFiles[currentMusicIndex].src;
+  if (wasPlaying) {
+    audio.play().catch(console.error);
+  }
+  showMusicTitle();
+}
+
+// Hàm chuyển bài ngẫu nhiên
+function randomMusic() {
+  let newIndex;
+  do {
+    newIndex = Math.floor(Math.random() * musicFiles.length);
+  } while (newIndex === currentMusicIndex && musicFiles.length > 1);
+
+  currentMusicIndex = newIndex;
+  const wasPlaying = !audio.paused;
+  audio.src = musicFiles[currentMusicIndex].src;
+  if (wasPlaying) {
+    audio.play().catch(console.error);
+  }
+  showMusicTitle();
+}
+
+// Hàm hiển thị tên bài hát tạm thời
+function showMusicTitle() {
+  const currentSong = musicFiles[currentMusicIndex];
+
+  // Tạo element hiển thị tên bài hát
+  let titleElement = document.getElementById("music-title-display");
+  if (!titleElement) {
+    titleElement = document.createElement("div");
+    titleElement.id = "music-title-display";
+    titleElement.className = "music-title-display";
+    document.body.appendChild(titleElement);
+  }
+
+  titleElement.textContent = currentSong.title;
+  titleElement.classList.remove("fade-out");
+  titleElement.classList.add("fade-in");
+
+  // Ẩn sau 3 giây
+  setTimeout(() => {
+    titleElement.classList.remove("fade-in");
+    titleElement.classList.add("fade-out");
+  }, 3000);
 }
 
 // Loading screen handling
@@ -512,11 +596,67 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setTimeout(hideLoading, 6000);
 
-  // Music control button click handler
-  musicControl.addEventListener("click", (e) => {
-    e.stopPropagation(); // Prevent event from bubbling up to document
-    toggleMusicPlayback();
-  });
+  // Music control button gesture handlers
+  let pressTimer = null;
+  let lastTapTime = 0;
+  let tapCount = 0;
+
+  // Touch/Mouse down - start long press timer
+  const startPress = (e) => {
+    e.stopPropagation();
+    pressTimer = setTimeout(() => {
+      // Long press detected - next song
+      nextMusic();
+      pressTimer = null;
+    }, 800); // 800ms for long press
+  };
+
+  // Touch/Mouse up - handle tap or cancel long press
+  const endPress = (e) => {
+    e.stopPropagation();
+
+    if (pressTimer) {
+      // Short press - check for double tap
+      clearTimeout(pressTimer);
+      pressTimer = null;
+
+      const currentTime = Date.now();
+      const timeDiff = currentTime - lastTapTime;
+
+      if (timeDiff < 300 && tapCount === 1) {
+        // Double tap detected - random song
+        tapCount = 0;
+        randomMusic();
+      } else {
+        // Single tap - toggle play/pause
+        tapCount = 1;
+        lastTapTime = currentTime;
+        setTimeout(() => {
+          if (tapCount === 1) {
+            toggleMusicPlayback();
+          }
+          tapCount = 0;
+        }, 300);
+      }
+    }
+  };
+
+  // Cancel long press on mouse/touch leave
+  const cancelPress = (e) => {
+    if (pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  };
+
+  // Add event listeners for both touch and mouse
+  musicControl.addEventListener("mousedown", startPress);
+  musicControl.addEventListener("mouseup", endPress);
+  musicControl.addEventListener("mouseleave", cancelPress);
+
+  musicControl.addEventListener("touchstart", startPress);
+  musicControl.addEventListener("touchend", endPress);
+  musicControl.addEventListener("touchcancel", cancelPress);
 
   // Update music control state when audio play/pause events occur
   audio.addEventListener("play", () => {
@@ -751,7 +891,10 @@ function renderGallery(userKey, galleryEl, history, currentUrl) {
  * @param {string} url
  */
 function setCurrentAvatar(userKey, url) {
-  db.collection("avatars").doc(userKey).update({ current: url }).catch(console.error);
+  db.collection("avatars")
+    .doc(userKey)
+    .update({ current: url })
+    .catch(console.error);
 }
 
 function getDefaultUrl(userKey) {
@@ -802,7 +945,11 @@ function deleteAvatar(userKey, url) {
  * Cập nhật ảnh nền trang
  */
 function setBackground(url) {
-  document.body.style.setProperty("background-image", `url('${url}')`, "important");
+  document.body.style.setProperty(
+    "background-image",
+    `url('${url}')`,
+    "important"
+  );
 }
 
 function preloadBackground(url) {
