@@ -604,34 +604,75 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleMusicPlayback();
   });
 
-  // Hover anywhere for 3 seconds to change song
-  let hoverTimer = null;
-  let isHovering = false;
+  // Touch/hover anywhere for 3 seconds to change song
+  let changeTimer = null;
+  let isActive = false;
+  let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  const startHover = () => {
-    if (!isHovering) {
-      isHovering = true;
-      hoverTimer = setTimeout(() => {
-        if (isHovering) {
+  const startChangeTimer = () => {
+    if (!isActive) {
+      isActive = true;
+      
+      // Show visual feedback
+      if (isMobile) {
+        const feedback = document.getElementById('touch-feedback');
+        const progress = document.getElementById('touch-progress');
+        feedback.classList.add('show');
+        progress.classList.add('show');
+      }
+      
+      changeTimer = setTimeout(() => {
+        if (isActive) {
           nextMusic();
-          isHovering = false;
+          isActive = false;
+          hideVisualFeedback();
         }
-      }, 3000); // 3 seconds hover
+      }, 3000); // 3 seconds
     }
   };
 
-  const endHover = () => {
-    isHovering = false;
-    if (hoverTimer) {
-      clearTimeout(hoverTimer);
-      hoverTimer = null;
+  const endChangeTimer = () => {
+    isActive = false;
+    if (changeTimer) {
+      clearTimeout(changeTimer);
+      changeTimer = null;
     }
+    hideVisualFeedback();
   };
 
-  // Add hover listeners to document body
-  document.body.addEventListener("mouseenter", startHover);
-  document.body.addEventListener("mouseleave", endHover);
-  document.body.addEventListener("mousemove", startHover);
+  const hideVisualFeedback = () => {
+    const feedback = document.getElementById('touch-feedback');
+    const progress = document.getElementById('touch-progress');
+    feedback.classList.remove('show');
+    progress.classList.remove('show');
+  };
+
+  if (isMobile) {
+    // Mobile: Use touch and hold anywhere on screen
+    let touchStartTime = 0;
+    
+    document.addEventListener("touchstart", (e) => {
+      // Ignore touches on interactive elements
+      if (e.target.closest('.music-control, .avt, .modal, button, input')) return;
+      
+      touchStartTime = Date.now();
+      startChangeTimer();
+    });
+
+    document.addEventListener("touchend", (e) => {
+      const touchDuration = Date.now() - touchStartTime;
+      if (touchDuration < 3000) {
+        endChangeTimer();
+      }
+    });
+
+    document.addEventListener("touchcancel", endChangeTimer);
+  } else {
+    // Desktop: Use hover
+    document.body.addEventListener("mouseenter", startChangeTimer);
+    document.body.addEventListener("mouseleave", endChangeTimer);
+    document.body.addEventListener("mousemove", startChangeTimer);
+  }
 
   // Update music control state when audio play/pause events occur
   audio.addEventListener("play", () => {

@@ -150,29 +150,115 @@ body {
 }
 
 @media (max-width: 768px) {
+  body {
+    font-size: 14px;
+  }
+
+  #info {
+    padding: 10px;
+    gap: 10px;
+  }
+
   #pinkboard {
-    width: 80vw;
-    height: 80vw;
-    max-width: 350px;
-    max-height: 350px;
-    margin: 30px 0;
+    width: min(80vw, 350px);
+    height: min(80vw, 350px);
+    margin: 20px 0;
     aspect-ratio: 1 / 1;
   }
 
   .avt {
-    width: 140px;
-    height: 140px;
+    width: clamp(100px, 20vw, 140px);
+    height: clamp(100px, 20vw, 140px);
     border-width: 3px;
   }
 
   .t_name {
-    font-size: 18px;
-    margin-top: 15px;
+    font-size: clamp(16px, 4vw, 20px);
+    margin-top: 10px;
+    line-height: 1.2;
   }
 
   .profile {
-    margin: 15px;
+    margin: 10px;
+    text-align: center;
   }
+
+  /* Improve touch targets on mobile */
+  .music-control {
+    min-width: 44px;
+    min-height: 44px;
+    touch-action: manipulation;
+  }
+
+  /* Prevent zoom on double tap and improve touch performance */
+  * {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Allow text selection for important content */
+  .t_name, .music-title-display {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+
+  /* Better viewport handling */
+  #info {
+    min-height: 100vh;
+    min-height: 100svh; /* Safari support */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* Touch feedback for song change */
+.touch-feedback {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(214, 98, 145, 0.9);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  backdrop-filter: blur(10px);
+}
+
+.touch-feedback.show {
+  opacity: 1;
+}
+
+.touch-progress {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 60px;
+  height: 60px;
+  border: 3px solid rgba(214, 98, 145, 0.3);
+  border-top: 3px solid var(--primary-color);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 999;
+}
+
+.touch-progress.show {
+  opacity: 1;
+  animation: spin 3s linear;
+}
+
+@keyframes spin {
+  0% { transform: translate(-50%, -50%) rotate(0deg); }
+  100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 .loading-screen {
