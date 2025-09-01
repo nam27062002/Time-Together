@@ -629,23 +629,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  const showMobileHint = () => {
-    const feedback = document.getElementById('touch-feedback');
-    const indicator = document.getElementById('swipe-indicator');
-    feedback.classList.add('show');
-    indicator.classList.add('show');
-    
-    // Auto hide after 3 seconds
-    setTimeout(() => {
-      feedback.classList.remove('show');
-      indicator.classList.remove('show');
-    }, 3000);
-  };
 
   if (isMobile) {
-    // Show hint on mobile after page loads
-    setTimeout(showMobileHint, 2000);
-    
     // Mobile: Use swipe up gesture or double tap anywhere on screen
     let touchStartY = 0;
     let lastTapTime = 0;
