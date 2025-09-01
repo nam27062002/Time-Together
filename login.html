@@ -10,7 +10,6 @@
   <meta name="theme-color" content="#d66291">
 </head>
 <body class="login-body">
-  <audio id="key-press-sound" src="sounds/click_sound_effect.mp3" preload="auto"></audio>
   <!-- Floating hearts animation -->
   <div class="floating-hearts">
     <div class="heart-float" style="animation-delay: 0s;">💕</div>
@@ -89,8 +88,6 @@
         window.location.href = 'index.html';
       };
 
-      const keyPressSound = document.getElementById('key-press-sound');
-
       const handleKeypress = (key) => {
         if (statusEl.textContent) statusEl.textContent = '';
 
@@ -101,11 +98,6 @@
         }
 
         updateDots();
-        
-        if (keyPressSound) {
-          keyPressSound.currentTime = 0; // Rewind to start for rapid presses
-          keyPressSound.play().catch(e => console.error("Error playing sound:", e)); // Play and catch potential errors
-        }
 
         if (enteredPasscode.length === 6) {
           checkPassword();
