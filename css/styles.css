@@ -1102,9 +1102,13 @@ a {
   width: 100%; /* Redundant with right/bottom but harmless */
   height: 100%; /* Redundant with right/bottom but harmless */
   z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   min-height: -webkit-fill-available; /* For iOS Safari */
   min-height: fill-available; /* Standard */
+}
 
 #passcode-screen.hidden {
   opacity: 0;
@@ -1119,6 +1123,30 @@ a {
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile full screen for passcode */
+@media (max-width: 768px) {
+  .passcode-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    border-radius: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    min-height: 100vh;
+    min-height: 100svh;
+  }
 }
 
 .passcode-title {
