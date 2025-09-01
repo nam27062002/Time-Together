@@ -1158,12 +1158,14 @@ a {
 
 .dot {
   font-size: 28px; /* Heart size */
-  color: rgba(255, 255, 255, 0.4); /* Unfilled heart color */
-  transition: color 0.2s ease, transform 0.2s ease;
+  color: #cccccc; /* Unfilled heart color - light gray */
+  opacity: 0.4; /* Apply opacity separately */
+  transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .dot.filled {
-  color: #ff69b4; /* Filled heart color - vibrant pink */
+  color: #ff69b4 !important; /* Filled heart color - vibrant pink, force override */
+  opacity: 1 !important; /* Ensure full opacity when filled */
   transform: scale(1.1); /* Pop effect when filled */
 }
 
