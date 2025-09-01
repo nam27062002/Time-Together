@@ -1,36 +1,14 @@
+// Use centralized config
 const SETTINGS = {
-  particles: {
-    length: 500,
-    duration: 2,
-    velocity: 100,
-    effect: -0.75,
-    size: 30,
-  },
-  dateStart: "08/31/2023",
-  heart: {
-    scale: 0.4,
-    color: "#ea80b0",
-    pulseScale: 1.1,
-    pulseDuration: 2,
-  },
-  text: {
-    font: 'bold 20px "Courier New", Courier, monospace',
-    color: "#d66291",
-    lineHeight: 25,
-  },
+  particles: CONFIG.particles,
+  dateStart: CONFIG.app.dateStart,
+  heart: CONFIG.heart,
+  text: CONFIG.text,
 };
 
 let displayMode = 0;
 // ===================== Firebase setup =====================
-const firebaseConfig = {
-  apiKey: "AIzaSyC5N4vOJagEL30iNZlr2qJa0H_Uec-VS18",
-  authDomain: "time-together-e4930.firebaseapp.com",
-  projectId: "time-together-e4930",
-  storageBucket: "time-together-e4930.firebasestorage.app",
-  messagingSenderId: "212578067416",
-  appId: "1:212578067416:web:6f3a2cb736a92716ae48ad",
-  measurementId: "G-YDQS32T003",
-};
+const firebaseConfig = CONFIG.firebase;
 
 // Khởi tạo Firebase
 firebase.initializeApp(firebaseConfig);
@@ -61,7 +39,7 @@ async function uploadAvatar(file, userKey) {
   const url = await fileRef.getDownloadURL();
 
   // Thêm url mới vào history và đặt thành current
-  const docRef = db.collection("avatars").doc(userKey);
+  const docRef = db.collection(CONFIG.collections.avatars).doc(userKey);
   await db.runTransaction(async (tx) => {
     const snapshot = await tx.get(docRef);
     const data = snapshot.exists ? snapshot.data() : {};
@@ -81,7 +59,7 @@ async function uploadAvatar(file, userKey) {
  * @param {HTMLImageElement} avatarElement
  */
 function subscribeAvatar(userKey, avatarElement) {
-  db.collection("avatars")
+  db.collection(CONFIG.collections.avatars)
     .doc(userKey)
     .onSnapshot((doc) => {
       if (doc.exists) {
@@ -588,7 +566,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  setTimeout(hideLoading, 6000);
+  setTimeout(hideLoading, CONFIG.app.loadingTimeout);
 
   // Simple click handler for music control - only toggle play/pause
   musicControl.addEventListener("click", (e) => {
@@ -609,7 +587,7 @@ document.addEventListener("DOMContentLoaded", () => {
           nextMusic();
           isActive = false;
         }
-      }, 3000); // 3 seconds
+      }, CONFIG.app.musicChangeHoldTime);
     }
   };
 
@@ -1091,7 +1069,7 @@ window.addEventListener('load', () => {
         showInstallButton();
       }
     }
-  }, 3000); // Show after 3 seconds
+  }, CONFIG.app.musicChangeHoldTime);
 });
 
 function showInstallButton() {

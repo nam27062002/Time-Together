@@ -7,6 +7,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="js/config.js"></script>
   <script src="js/loading.js"></script>
   <meta name="theme-color" content="#d66291">
 </head>
@@ -51,28 +52,19 @@
 
   <script>
     (function() {
-      const correctPassword = '310823';
-      const authKey = 'timeTogetherAuth';
-      const lockoutKey = 'timeTogetherLockout';
-      const attemptsKey = 'timeTogetherAttempts';
+      const correctPassword = CONFIG.auth.passcode;
+      const authKey = CONFIG.auth.storageKeys.auth;
+      const lockoutKey = CONFIG.auth.storageKeys.lockout;
+      const attemptsKey = CONFIG.auth.storageKeys.attempts;
 
       // Initialize Firebase for background loading
-      const firebaseConfig = {
-        apiKey: "AIzaSyBsWZZhZa9RZ_2nqlWk0LFvf4YGCxNJwjk",
-        authDomain: "time-together-e4930.firebaseapp.com",
-        projectId: "time-together-e4930",
-        storageBucket: "time-together-e4930.firebasestorage.app",
-        messagingSenderId: "626261147738",
-        appId: "1:626261147738:web:c4b4f65e17b2ff54a7c4be"
-      };
-
-      firebase.initializeApp(firebaseConfig);
+      firebase.initializeApp(CONFIG.firebaseLogin);
       const db = firebase.firestore();
 
       // Load background from database
       const loadBackgroundFromDB = async () => {
         try {
-          const bgDoc = await db.collection('background').doc('main').get();
+          const bgDoc = await db.collection(CONFIG.collections.background).doc(CONFIG.collections.backgroundMain).get();
           if (bgDoc.exists && bgDoc.data().current) {
             const bgUrl = bgDoc.data().current;
             // Create new image to preload
@@ -96,7 +88,7 @@
       };
 
       // Show loading screen with minimum duration
-      const loadingControl = showLoadingWithMinDuration(1000);
+      const loadingControl = showLoadingWithMinDuration(CONFIG.app.minLoadingDuration);
 
       // Load background from database
       loadBackgroundFromDB().then(() => {
@@ -167,12 +159,13 @@
           sessionStorage.setItem(attemptsKey, failedAttempts);
 
           let lockoutDuration = 0;
-          if (failedAttempts >= 10) {
-            lockoutDuration = 30;
-          } else if (failedAttempts >= 5) {
-            lockoutDuration = 5;
-          } else if (failedAttempts >= 3) {
-            lockoutDuration = 1;
+          const lockoutSettings = CONFIG.auth.lockoutSettings;
+          if (failedAttempts >= lockoutSettings.thirdLockout.attempts) {
+            lockoutDuration = lockoutSettings.thirdLockout.duration;
+          } else if (failedAttempts >= lockoutSettings.secondLockout.attempts) {
+            lockoutDuration = lockoutSettings.secondLockout.duration;
+          } else if (failedAttempts >= lockoutSettings.firstLockout.attempts) {
+            lockoutDuration = lockoutSettings.firstLockout.duration;
           }
 
           if (lockoutDuration > 0) {
