@@ -427,8 +427,10 @@ function initCanvas(canvas) {
   }
 
   function onResize() {
-    canvas.width = canvas.clientWidth;
-    canvas.height = canvas.clientHeight;
+    // Đảm bảo canvas luôn vuông để border-radius: 50% tạo ra hình tròn hoàn hảo
+    const size = Math.min(canvas.clientWidth, canvas.clientHeight);
+    canvas.width = size;
+    canvas.height = size;
   }
 
   window.onresize = onResize;

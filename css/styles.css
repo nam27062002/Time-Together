@@ -70,6 +70,7 @@ body {
   box-shadow: 0 0 30px var(--primary-shadow);
   border-radius: 50%;
   transition: transform var(--transition-speed) ease;
+  aspect-ratio: 1 / 1;
 }
 
 #pinkboard:hover {
@@ -155,6 +156,7 @@ body {
     max-width: 350px;
     max-height: 350px;
     margin: 30px 0;
+    aspect-ratio: 1 / 1;
   }
 
   .avt {
