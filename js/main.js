@@ -598,67 +598,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setTimeout(hideLoading, 6000);
 
-  // Music control button gesture handlers
-  let pressTimer = null;
-  let lastTapTime = 0;
-  let tapCount = 0;
-
-  // Touch/Mouse down - start long press timer
-  const startPress = (e) => {
+  // Simple click handler for music control - only toggle play/pause
+  musicControl.addEventListener("click", (e) => {
     e.stopPropagation();
-    pressTimer = setTimeout(() => {
-      // Long press detected - next song
-      nextMusic();
-      pressTimer = null;
-    }, 800); // 800ms for long press
-  };
+    toggleMusicPlayback();
+  });
 
-  // Touch/Mouse up - handle tap or cancel long press
-  const endPress = (e) => {
-    e.stopPropagation();
+  // Hover anywhere for 3 seconds to change song
+  let hoverTimer = null;
+  let isHovering = false;
 
-    if (pressTimer) {
-      // Short press - check for double tap
-      clearTimeout(pressTimer);
-      pressTimer = null;
-
-      const currentTime = Date.now();
-      const timeDiff = currentTime - lastTapTime;
-
-      if (timeDiff < 300 && tapCount === 1) {
-        // Double tap detected - random song
-        tapCount = 0;
-        randomMusic();
-      } else {
-        // Single tap - toggle play/pause
-        tapCount = 1;
-        lastTapTime = currentTime;
-        setTimeout(() => {
-          if (tapCount === 1) {
-            toggleMusicPlayback();
-          }
-          tapCount = 0;
-        }, 300);
-      }
+  const startHover = () => {
+    if (!isHovering) {
+      isHovering = true;
+      hoverTimer = setTimeout(() => {
+        if (isHovering) {
+          nextMusic();
+          isHovering = false;
+        }
+      }, 3000); // 3 seconds hover
     }
   };
 
-  // Cancel long press on mouse/touch leave
-  const cancelPress = (e) => {
-    if (pressTimer) {
-      clearTimeout(pressTimer);
-      pressTimer = null;
+  const endHover = () => {
+    isHovering = false;
+    if (hoverTimer) {
+      clearTimeout(hoverTimer);
+      hoverTimer = null;
     }
   };
 
-  // Add event listeners for both touch and mouse
-  musicControl.addEventListener("mousedown", startPress);
-  musicControl.addEventListener("mouseup", endPress);
-  musicControl.addEventListener("mouseleave", cancelPress);
-
-  musicControl.addEventListener("touchstart", startPress);
-  musicControl.addEventListener("touchend", endPress);
-  musicControl.addEventListener("touchcancel", cancelPress);
+  // Add hover listeners to document body
+  document.body.addEventListener("mouseenter", startHover);
+  document.body.addEventListener("mouseleave", endHover);
+  document.body.addEventListener("mousemove", startHover);
 
   // Update music control state when audio play/pause events occur
   audio.addEventListener("play", () => {
