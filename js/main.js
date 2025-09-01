@@ -612,20 +612,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const startChangeTimer = () => {
     if (!isActive) {
       isActive = true;
-      
-      // Show visual feedback
-      if (isMobile) {
-        const feedback = document.getElementById('touch-feedback');
-        const progress = document.getElementById('touch-progress');
-        feedback.classList.add('show');
-        progress.classList.add('show');
-      }
-      
       changeTimer = setTimeout(() => {
         if (isActive) {
           nextMusic();
           isActive = false;
-          hideVisualFeedback();
         }
       }, 3000); // 3 seconds
     }
@@ -637,36 +627,71 @@ document.addEventListener("DOMContentLoaded", () => {
       clearTimeout(changeTimer);
       changeTimer = null;
     }
-    hideVisualFeedback();
   };
 
-  const hideVisualFeedback = () => {
+  const showMobileHint = () => {
     const feedback = document.getElementById('touch-feedback');
-    const progress = document.getElementById('touch-progress');
-    feedback.classList.remove('show');
-    progress.classList.remove('show');
+    const indicator = document.getElementById('swipe-indicator');
+    feedback.classList.add('show');
+    indicator.classList.add('show');
+    
+    // Auto hide after 3 seconds
+    setTimeout(() => {
+      feedback.classList.remove('show');
+      indicator.classList.remove('show');
+    }, 3000);
   };
 
   if (isMobile) {
-    // Mobile: Use touch and hold anywhere on screen
-    let touchStartTime = 0;
+    // Show hint on mobile after page loads
+    setTimeout(showMobileHint, 2000);
+    
+    // Mobile: Use swipe up gesture or double tap anywhere on screen
+    let touchStartY = 0;
+    let lastTapTime = 0;
+    let tapCount = 0;
     
     document.addEventListener("touchstart", (e) => {
       // Ignore touches on interactive elements
       if (e.target.closest('.music-control, .avt, .modal, button, input')) return;
       
-      touchStartTime = Date.now();
-      startChangeTimer();
-    });
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
 
     document.addEventListener("touchend", (e) => {
-      const touchDuration = Date.now() - touchStartTime;
-      if (touchDuration < 3000) {
-        endChangeTimer();
+      // Ignore touches on interactive elements
+      if (e.target.closest('.music-control, .avt, .modal, button, input')) return;
+      
+      const touchEndY = e.changedTouches[0].clientY;
+      const swipeDistance = touchStartY - touchEndY;
+      const currentTime = Date.now();
+      
+      // Check for swipe up (at least 100px)
+      if (swipeDistance > 100) {
+        nextMusic();
+        return;
       }
-    });
+      
+      // Check for double tap
+      if (currentTime - lastTapTime < 300) {
+        tapCount++;
+        if (tapCount === 2) {
+          nextMusic();
+          tapCount = 0;
+          return;
+        }
+      } else {
+        tapCount = 1;
+      }
+      
+      lastTapTime = currentTime;
+      
+      // Reset tap count after delay
+      setTimeout(() => {
+        tapCount = 0;
+      }, 300);
+    }, { passive: true });
 
-    document.addEventListener("touchcancel", endChangeTimer);
   } else {
     // Desktop: Use hover
     document.body.addEventListener("mouseenter", startChangeTimer);

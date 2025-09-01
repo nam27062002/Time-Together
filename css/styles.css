@@ -216,49 +216,62 @@ body {
 /* Touch feedback for song change */
 .touch-feedback {
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(214, 98, 145, 0.9);
   color: white;
   padding: 8px 16px;
   border-radius: 20px;
-  font-size: 14px;
+  font-size: 12px;
   z-index: 1000;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
   backdrop-filter: blur(10px);
+  text-align: center;
+  max-width: 80%;
 }
 
 .touch-feedback.show {
   opacity: 1;
 }
 
-.touch-progress {
+.swipe-indicator {
   position: fixed;
-  top: 50%;
+  bottom: 80px;
   left: 50%;
-  transform: translate(-50%, -50%);
-  width: 60px;
-  height: 60px;
-  border: 3px solid rgba(214, 98, 145, 0.3);
-  border-top: 3px solid var(--primary-color);
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  background: rgba(214, 98, 145, 0.8);
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 16px;
+  z-index: 999;
   opacity: 0;
   transition: opacity 0.3s ease;
   pointer-events: none;
-  z-index: 999;
 }
 
-.touch-progress.show {
+.swipe-indicator.show {
   opacity: 1;
-  animation: spin 3s linear;
+  animation: bounce 2s infinite;
 }
 
-@keyframes spin {
-  0% { transform: translate(-50%, -50%) rotate(0deg); }
-  100% { transform: translate(-50%, -50%) rotate(360deg); }
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  40% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+  60% {
+    transform: translateX(-50%) translateY(-5px);
+  }
 }
 
 .loading-screen {
