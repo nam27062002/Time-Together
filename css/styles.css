@@ -1105,6 +1105,9 @@ a {
   height: 100%; /* Redundant with right/bottom but harmless */
   z-index: 2000;
 
+  min-height: -webkit-fill-available; /* For iOS Safari */
+  min-height: fill-available; /* Standard */
+
 #passcode-screen.hidden {
   opacity: 0;
   pointer-events: none;
