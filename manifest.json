@@ -11,6 +11,12 @@
   "lang": "vi",
   "icons": [
     {
+      "src": "img/app_icon.jpg",
+      "sizes": "any",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
       "src": "img/favicon.png",
       "sizes": "any",
       "type": "image/png",
