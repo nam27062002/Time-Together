@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Xác thực</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div id="passcode-screen">
+    <div class="passcode-container">
+      <h2 class="passcode-title">Nhập mật khẩu</h2>
+      <div class="passcode-dots">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div>
+      </div>
+      <p class="passcode-status"></p>
+      <div class="passcode-keypad">
+        <button class="keypad-button" data-key="1">1</button>
+        <button class="keypad-button" data-key="2">2</button>
+        <button class="keypad-button" data-key="3">3</button>
+        <button class="keypad-button" data-key="4">4</button>
+        <button class="keypad-button" data-key="5">5</button>
+        <button class="keypad-button" data-key="6">6</button>
+        <button class="keypad-button" data-key="7">7</button>
+        <button class="keypad-button" data-key="8">8</button>
+        <button class="keypad-button" data-key="9">9</button>
+        <div class="keypad-spacer"></div>
+        <button class="keypad-button" data-key="0">0</button>
+        <button class="keypad-button keypad-control" data-key="delete"><i class="fas fa-delete-left"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const correctPassword = '310823';
+      const authKey = 'timeTogetherAuth';
+      const lockoutKey = 'timeTogetherLockout';
+      const attemptsKey = 'timeTogetherAttempts';
+
+      if (localStorage.getItem(authKey) === 'true') {
+        window.location.href = 'index.html';
+        return;
+      }
+
+      const dots = document.querySelectorAll('.dot');
+      const keypad = document.querySelector('.passcode-keypad');
+      const statusEl = document.querySelector('.passcode-status');
+      let enteredPasscode = '';
+
+      const updateDots = () => {
+        dots.forEach((dot, index) => {
+          dot.classList.toggle('filled', index < enteredPasscode.length);
+        });
+      };
+
+      const resetPasscode = () => {
+        enteredPasscode = '';
+        updateDots();
+      };
+
+      const showPasscodeError = (message) => {
+        statusEl.textContent = message;
+        const dotsContainer = document.querySelector('.passcode-dots');
+        dotsContainer.classList.add('shake');
+        setTimeout(() => {
+          dotsContainer.classList.remove('shake');
+          resetPasscode();
+        }, 500);
+      };
+      
+      const handleSuccessfulAuth = () => {
+        localStorage.setItem(authKey, 'true');
+        sessionStorage.removeItem(lockoutKey);
+        sessionStorage.removeItem(attemptsKey);
+        window.location.href = 'index.html';
+      };
+
+      const handleKeypress = (key) => {
+        if (statusEl.textContent) statusEl.textContent = '';
+
+        if (key === 'delete') {
+          enteredPasscode = enteredPasscode.slice(0, -1);
+        } else if (enteredPasscode.length < 6) {
+          enteredPasscode += key;
+        }
+
+        updateDots();
+
+        if (enteredPasscode.length === 6) {
+          checkPassword();
+        }
+      };
+
+      const checkPassword = () => {
+        if (enteredPasscode === correctPassword) {
+          handleSuccessfulAuth();
+        } else {
+          let failedAttempts = parseInt(sessionStorage.getItem(attemptsKey) || '0') + 1;
+          sessionStorage.setItem(attemptsKey, failedAttempts);
+
+          let lockoutDuration = 0;
+          if (failedAttempts >= 10) {
+            lockoutDuration = 30;
+          } else if (failedAttempts >= 5) {
+            lockoutDuration = 5;
+          } else if (failedAttempts >= 3) {
+            lockoutDuration = 1;
+          }
+
+          if (lockoutDuration > 0) {
+            const lockoutUntil = Date.now() + lockoutDuration * 60 * 1000;
+            sessionStorage.setItem(lockoutKey, JSON.stringify({ until: lockoutUntil }));
+            showPasscodeError(`Thử lại sau ${lockoutDuration} phút`);
+          } else {
+            showPasscodeError('Mật khẩu sai');
+          }
+        }
+      };
+
+      const init = () => {
+        const lockoutInfo = JSON.parse(sessionStorage.getItem(lockoutKey) || '{}');
+        if (lockoutInfo.until && Date.now() < lockoutInfo.until) {
+          const minutesLeft = Math.ceil((lockoutInfo.until - Date.now()) / 60000);
+          statusEl.textContent = `Thử lại sau ${minutesLeft} phút`;
+          keypad.style.display = 'none';
+          return;
+        }
+
+        keypad.addEventListener('click', (e) => {
+          const button = e.target.closest('.keypad-button');
+          if (button) {
+            const key = button.dataset.key;
+            handleKeypress(key);
+          }
+        });
+      };
+
+      init();
+    })();
+  </script>
+</body>
+</html>
