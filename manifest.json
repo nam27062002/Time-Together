@@ -2,12 +2,12 @@
   "name": "Time Together - Đếm ngược thời gian bên nhau",
   "short_name": "Time Together",
   "description": "Ứng dụng đếm ngược thời gian bên nhau với hiệu ứng trái tim và nhạc nền lãng mạn",
-  "start_url": "/",
+  "start_url": "/Time-Together/",
   "display": "fullscreen",
   "orientation": "portrait",
   "theme_color": "#d66291",
   "background_color": "#000000",
-  "scope": "/",
+  "scope": "/Time-Together/",
   "lang": "vi",
   "icons": [
     {
@@ -48,7 +48,7 @@
     {
       "name": "Chuyển bài nhạc",
       "description": "Chuyển sang bài nhạc tiếp theo",
-      "url": "/?action=next",
+      "url": "/Time-Together/?action=next",
       "icons": [
         {
           "src": "img/favicon.png",
