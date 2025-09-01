@@ -790,26 +790,55 @@ function fetchAvatarHistory(userKey) {
 
 function renderModalGallery(userKey, history, currentUrl) {
   modalGallery.innerHTML = "";
+  
+  // Show loading indicator
+  const loadingEl = document.createElement("div");
+  loadingEl.className = "gallery-loading";
+  loadingEl.innerHTML = "💖 Đang tải ảnh...";
+  modalGallery.appendChild(loadingEl);
+  
   const urls = [];
   if (currentUrl) urls.push(currentUrl);
   history.forEach((u) => {
     if (u && !urls.includes(u)) urls.push(u);
   });
 
-  urls.forEach((url) => {
+  // Remove loading after a short delay
+  setTimeout(() => {
+    modalGallery.innerHTML = "";
+    renderGalleryImages(userKey, urls, currentUrl);
+  }, 200);
+}
+
+function renderGalleryImages(userKey, urls, currentUrl) {
+  const batchSize = CONFIG.gallery.loadBatchSize;
+  const loadDelay = CONFIG.gallery.loadDelay;
+  
+  // Create all wrappers first for layout stability
+  const fragments = document.createDocumentFragment();
+  const imageElements = [];
+  
+  urls.forEach((url, index) => {
     const wrapper = document.createElement("div");
     wrapper.className = "thumb-wrapper";
+    
+    // Create placeholder
+    const placeholder = document.createElement("div");
+    placeholder.className = "thumb-placeholder";
+    placeholder.style.cssText = `
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: ${CONFIG.gallery.placeholderColor};
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+    `;
+    placeholder.innerHTML = "💖";
+    wrapper.appendChild(placeholder);
 
-    const img = document.createElement("img");
-    img.src = url;
-    img.className = "thumb" + (url === currentUrl ? " active" : "");
-    img.addEventListener("click", () => {
-      setCurrentAvatar(userKey, url);
-      hideAvatarModal();
-    });
-    wrapper.appendChild(img);
-
-    // nút xoá, trừ default
+    // Add delete button if not default
     const defaultUrl = getDefaultUrl(userKey);
     if (url !== defaultUrl) {
       const delBtn = document.createElement("button");
@@ -822,8 +851,69 @@ function renderModalGallery(userKey, history, currentUrl) {
       wrapper.appendChild(delBtn);
     }
 
-    modalGallery.appendChild(wrapper);
+    fragments.appendChild(wrapper);
+    imageElements.push({ wrapper, placeholder, url, index });
   });
+  
+  modalGallery.appendChild(fragments);
+  
+  // Load images in batches
+  loadImagesBatch(userKey, imageElements, currentUrl, 0);
+}
+
+function loadImagesBatch(userKey, imageElements, currentUrl, batchStart) {
+  const batchSize = CONFIG.gallery.loadBatchSize;
+  const loadDelay = CONFIG.gallery.loadDelay;
+  const batchEnd = Math.min(batchStart + batchSize, imageElements.length);
+  
+  // Load current batch
+  for (let i = batchStart; i < batchEnd; i++) {
+    const element = imageElements[i];
+    loadSingleImage(userKey, element, currentUrl);
+  }
+  
+  // Schedule next batch
+  if (batchEnd < imageElements.length) {
+    setTimeout(() => {
+      loadImagesBatch(userKey, imageElements, currentUrl, batchEnd);
+    }, loadDelay);
+  }
+}
+
+function loadSingleImage(userKey, element, currentUrl) {
+  const { wrapper, placeholder, url } = element;
+  
+  const img = new Image();
+  img.onload = () => {
+    // Replace placeholder with loaded image
+    img.className = "thumb" + (url === currentUrl ? " active" : "");
+    img.style.cssText = "opacity: 0; transition: opacity 0.3s ease;";
+    
+    img.addEventListener("click", () => {
+      setCurrentAvatar(userKey, url);
+      hideAvatarModal();
+    });
+    
+    wrapper.replaceChild(img, placeholder);
+    
+    // Fade in
+    setTimeout(() => {
+      img.style.opacity = "1";
+    }, 10);
+  };
+  
+  img.onerror = () => {
+    // Show error state
+    placeholder.innerHTML = "❌";
+    placeholder.style.background = "rgba(255, 0, 0, 0.2)";
+  };
+  
+  // Add Firebase cache parameters for better caching
+  const optimizedUrl = url.includes('?') 
+    ? `${url}&w=${CONFIG.gallery.thumbnailSize}&h=${CONFIG.gallery.thumbnailSize}`
+    : `${url}?w=${CONFIG.gallery.thumbnailSize}&h=${CONFIG.gallery.thumbnailSize}`;
+  
+  img.src = optimizedUrl;
 }
 
 // Gallery containers (now null because inline gallery removed)

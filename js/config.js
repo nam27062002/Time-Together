@@ -46,6 +46,15 @@ const CONFIG = {
     musicChangeHoldTime: 3000 // 3 seconds to change music
   },
 
+  // Gallery Performance Settings
+  gallery: {
+    lazyLoadOffset: 2, // Load 2 images ahead
+    thumbnailSize: 150, // Max thumbnail size in pixels
+    loadBatchSize: 6, // Load 6 images per batch
+    loadDelay: 100, // Delay between batch loads (ms)
+    placeholderColor: "rgba(214, 98, 145, 0.3)" // Loading placeholder color
+  },
+
   // Particle Animation Settings
   particles: {
     length: 500,
