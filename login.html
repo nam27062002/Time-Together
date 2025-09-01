@@ -7,9 +7,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="css/styles.css">
+  <script src="js/loading.js"></script>
   <meta name="theme-color" content="#d66291">
 </head>
 <body class="login-body">
+
   <!-- Floating hearts animation -->
   <div class="floating-hearts">
     <div class="heart-float" style="animation-delay: 0s;">💕</div>
@@ -43,12 +45,65 @@
     </div>
   </div>
 
+  <!-- Firebase SDK for background loading -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
   <script>
     (function() {
       const correctPassword = '310823';
       const authKey = 'timeTogetherAuth';
       const lockoutKey = 'timeTogetherLockout';
       const attemptsKey = 'timeTogetherAttempts';
+
+      // Initialize Firebase for background loading
+      const firebaseConfig = {
+        apiKey: "AIzaSyBsWZZhZa9RZ_2nqlWk0LFvf4YGCxNJwjk",
+        authDomain: "time-together-e4930.firebaseapp.com",
+        projectId: "time-together-e4930",
+        storageBucket: "time-together-e4930.firebasestorage.app",
+        messagingSenderId: "626261147738",
+        appId: "1:626261147738:web:c4b4f65e17b2ff54a7c4be"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.firestore();
+
+      // Load background from database
+      const loadBackgroundFromDB = async () => {
+        try {
+          const bgDoc = await db.collection('background').doc('main').get();
+          if (bgDoc.exists && bgDoc.data().current) {
+            const bgUrl = bgDoc.data().current;
+            // Create new image to preload
+            const img = new Image();
+            return new Promise((resolve, reject) => {
+              img.onload = () => {
+                document.body.style.backgroundImage = `url('${bgUrl}')`;
+                resolve();
+              };
+              img.onerror = reject;
+              img.src = bgUrl;
+            });
+          } else {
+            // No custom background, resolve immediately
+            return Promise.resolve();
+          }
+        } catch (error) {
+          console.log('Background loading failed:', error);
+          return Promise.reject(error);
+        }
+      };
+
+      // Show loading screen with minimum duration
+      const loadingControl = showLoadingWithMinDuration(1000);
+
+      // Load background from database
+      loadBackgroundFromDB().then(() => {
+        loadingControl.hide();
+      }).catch(() => {
+        loadingControl.hide();
+      });
 
       if (localStorage.getItem(authKey) === 'true') {
         window.location.href = 'index.html';

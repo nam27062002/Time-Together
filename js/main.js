@@ -564,20 +564,12 @@ function showMusicTitle() {
 
 // Loading screen handling
 document.addEventListener("DOMContentLoaded", () => {
-  const loadingScreen = document.querySelector(".loading-screen");
   const musicControl = document.querySelector(".music-control");
 
   // Gọi hàm để đặt nhạc ngẫu nhiên khi trang tải
   setRandomMusic();
 
-  // Helper functions
-  window.showLoading = () => {
-    loadingScreen.classList.remove("fade-out");
-  };
-  window.hideLoading = () => {
-    loadingScreen.classList.add("fade-out");
-  };
-
+  // Show loading screen
   showLoading();
 
   // Chỉ ẩn loading khi 2 avatar chính đã load hoặc sau 6s fallback
