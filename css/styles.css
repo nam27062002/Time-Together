@@ -280,12 +280,14 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #000;
+  background: linear-gradient(45deg, #000, #1a1a1a, #000);
+  background-size: 400% 400%;
+  animation: gradientShift 3s ease infinite;
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  transition: opacity 0.5s ease-out;
+  transition: opacity 0.8s ease-out;
   pointer-events: all;
 }
 
@@ -294,24 +296,180 @@ body {
   pointer-events: none;
 }
 
-.loading-heart {
-  width: 50px;
-  height: 50px;
-  animation: pulse 1.5s infinite;
+.loading-container {
+  text-align: center;
+  color: var(--primary-color);
 }
 
-@keyframes pulse {
-  0% {
-    transform: scale(1);
-  }
+.loading-hearts {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
 
+.heart {
+  font-size: 24px;
+  animation: heartBeat 1.5s ease-in-out infinite;
+}
+
+.heart-1 { animation-delay: 0s; }
+.heart-2 { animation-delay: 0.3s; }
+.heart-3 { animation-delay: 0.6s; }
+
+.loading-text {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  background: linear-gradient(45deg, var(--primary-color), #ff69b4, var(--primary-color));
+  background-size: 200% 200%;
+  animation: textShimmer 2s ease-in-out infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.loading-subtitle {
+  font-size: 14px;
+  opacity: 0.7;
+  animation: fade 2s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes heartBeat {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
   50% {
-    transform: scale(1.2);
+    transform: scale(1.3);
+    opacity: 1;
   }
+}
 
-  100% {
-    transform: scale(1);
+@keyframes textShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes fade {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* PWA Install Button */
+.install-button {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(214, 98, 145, 0.4);
+  transition: all 0.3s ease;
+  z-index: 1000;
+}
+
+.install-button:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 20px rgba(214, 98, 145, 0.6);
+}
+
+.install-button:active {
+  transform: scale(0.95);
+}
+
+/* PWA Fullscreen adjustments */
+@media (display-mode: fullscreen) {
+  .install-button {
+    display: none !important;
   }
+  
+  /* Add padding for status bar on iOS */
+  #info {
+    padding-top: max(env(safe-area-inset-top), 20px);
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+  }
+}
+
+@media (display-mode: standalone) {
+  .install-button {
+    display: none !important;
+  }
+  
+  #info {
+    padding-top: max(env(safe-area-inset-top), 20px);
+    padding-bottom: max(env(safe-area-inset-bottom), 20px);
+  }
+}
+
+/* Install Modal */
+.install-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  backdrop-filter: blur(5px);
+}
+
+.install-modal-content {
+  background: #1a1a1a;
+  color: white;
+  padding: 30px;
+  border-radius: 15px;
+  text-align: center;
+  max-width: 90%;
+  width: 350px;
+  border: 2px solid var(--primary-color);
+  box-shadow: 0 10px 30px rgba(214, 98, 145, 0.3);
+}
+
+.install-modal-content h3 {
+  color: var(--primary-color);
+  margin-bottom: 20px;
+  font-size: 20px;
+}
+
+.install-modal-content p {
+  line-height: 1.6;
+  margin-bottom: 25px;
+  font-size: 14px;
+}
+
+.install-close-btn {
+  background: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.install-close-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 5px 15px rgba(214, 98, 145, 0.4);
 }
 
 .music-control {

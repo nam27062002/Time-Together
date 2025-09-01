@@ -1060,6 +1060,123 @@ document.addEventListener("click", (e) => {
 maleAvatar.addEventListener("click", () => openAvatarModal("male"));
 femaleAvatar.addEventListener("click", () => openAvatarModal("female"));
 
+// ===================== PWA Installation =====================
+let deferredPrompt;
+let installButton = null;
+
+// Service Worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .then((registration) => {
+        console.log('SW registered: ', registration);
+      })
+      .catch((registrationError) => {
+        console.log('SW registration failed: ', registrationError);
+      });
+  });
+}
+
+// PWA Install prompt
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  showInstallButton();
+});
+
+window.addEventListener('appinstalled', () => {
+  hideInstallButton();
+  deferredPrompt = null;
+});
+
+// Show install button for mobile even without beforeinstallprompt
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    // Check if it's mobile and not already installed
+    if (isMobile && !window.matchMedia('(display-mode: standalone)').matches) {
+      // If no beforeinstallprompt was triggered, show manual install button
+      if (!deferredPrompt) {
+        showInstallButton();
+      }
+    }
+  }, 3000); // Show after 3 seconds
+});
+
+function showInstallButton() {
+  // Create install button if not exists
+  if (!installButton) {
+    installButton = document.createElement('button');
+    installButton.className = 'install-button';
+    installButton.innerHTML = '<i class="fas fa-download"></i>';
+    installButton.title = 'Cài đặt ứng dụng';
+    installButton.addEventListener('click', installApp);
+    document.body.appendChild(installButton);
+  }
+  installButton.style.display = 'flex';
+}
+
+function hideInstallButton() {
+  if (installButton) {
+    installButton.style.display = 'none';
+  }
+}
+
+async function installApp() {
+  if (deferredPrompt) {
+    // Android Chrome - use native prompt
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+    } else {
+      console.log('User dismissed the install prompt');
+    }
+    
+    deferredPrompt = null;
+    hideInstallButton();
+  } else {
+    // iOS Safari or other browsers - show manual instructions
+    showManualInstallPrompt();
+  }
+}
+
+function showManualInstallPrompt() {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  
+  let instructions = '';
+  if (isIOS) {
+    instructions = 'Để cài đặt ứng dụng:<br/>1. Nhấn nút chia sẻ <i class="fas fa-share"></i><br/>2. Chọn "Thêm vào Màn hình Chính"';
+  } else {
+    instructions = 'Để cài đặt ứng dụng:<br/>1. Nhấn menu trình duyệt (⋮)<br/>2. Chọn "Thêm vào màn hình chính"';
+  }
+  
+  // Create install modal
+  const modal = document.createElement('div');
+  modal.className = 'install-modal';
+  modal.innerHTML = `
+    <div class="install-modal-content">
+      <h3>Cài đặt Time Together</h3>
+      <p>${instructions}</p>
+      <button class="install-close-btn">Đã hiểu</button>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Close modal
+  modal.querySelector('.install-close-btn').addEventListener('click', () => {
+    document.body.removeChild(modal);
+  });
+  
+  // Close on backdrop click
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+}
+
 maleFileInput.addEventListener("change", (e) =>
   handleAvatarChange(e, maleAvatar, "male")
 );

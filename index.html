@@ -18,11 +18,24 @@
     />
     <link rel="stylesheet" href="css/styles.css" />
     <link rel="shortcut icon" href="img/favicon.png" type="image/png" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="img/favicon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Time Together" />
     <title>Time Together</title>
   </head>
   <body>
     <div class="loading-screen">
-      <img src="img/favicon.png" alt="Loading" class="loading-heart" />
+      <div class="loading-container">
+        <div class="loading-hearts">
+          <div class="heart heart-1">💖</div>
+          <div class="heart heart-2">💖</div>
+          <div class="heart heart-3">💖</div>
+        </div>
+        <div class="loading-text">Time Together</div>
+        <div class="loading-subtitle">Đang tải...</div>
+      </div>
     </div>
     <!-- Âm nhạc nền -->
     <audio id="bgMusic" src="music/music.mp3" preload="auto" loop></audio>
