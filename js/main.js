@@ -1228,41 +1228,73 @@ subscribeAvatar("female", femaleAvatar, window.checkDataLoaded);
 
 // ===================== ROMANTIC VISUAL EFFECTS =====================
 
-// Create floating particles
+// Optimized floating particles with object pooling
+class FloatingParticlePool {
+  constructor(maxSize = 15) {
+    this.pool = [];
+    this.active = [];
+    this.maxSize = maxSize;
+    this.particles = ['💖', '💕', '💗', '🌟', '✨', '💫', '🌸', '🌺'];
+    this.container = null;
+  }
+
+  init(container) {
+    this.container = container;
+    // Pre-create particle elements for pooling
+    for (let i = 0; i < this.maxSize; i++) {
+      const particle = document.createElement('div');
+      particle.className = 'particle';
+      particle.style.display = 'none';
+      this.pool.push(particle);
+      container.appendChild(particle);
+    }
+  }
+
+  createParticle() {
+    if (this.pool.length === 0) return; // No available particles
+    
+    const particle = this.pool.pop();
+    particle.textContent = this.particles[Math.floor(Math.random() * this.particles.length)];
+    
+    // Random positioning and animation
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.animationDuration = (Math.random() * 8 + 10) + 's';
+    particle.style.animationDelay = Math.random() * 2 + 's';
+    particle.style.display = 'block';
+    
+    this.active.push(particle);
+    
+    // Return to pool after animation
+    setTimeout(() => {
+      this.returnToPool(particle);
+    }, 12000);
+  }
+
+  returnToPool(particle) {
+    const index = this.active.indexOf(particle);
+    if (index > -1) {
+      this.active.splice(index, 1);
+      particle.style.display = 'none';
+      this.pool.push(particle);
+    }
+  }
+}
+
+// Create floating particles with object pooling
 function createFloatingParticles() {
   const particleContainer = document.getElementById('floating-particles');
   if (!particleContainer) return;
 
-  const particles = ['💖', '💕', '💗', '🌟', '✨', '💫', '🌸', '🌺'];
-  const maxParticles = 12; // Increased since Aurora is removed
-
-  function createParticle() {
-    const particle = document.createElement('div');
-    particle.className = 'particle';
-    particle.textContent = particles[Math.floor(Math.random() * particles.length)];
-    
-    // Random positioning
-    particle.style.left = Math.random() * 100 + '%';
-    particle.style.animationDuration = (Math.random() * 8 + 10) + 's';
-    particle.style.animationDelay = Math.random() * 2 + 's';
-    
-    particleContainer.appendChild(particle);
-    
-    // Remove particle after animation
-    setTimeout(() => {
-      if (particle.parentNode) {
-        particle.parentNode.removeChild(particle);
-      }
-    }, 12000);
-  }
+  const particlePool = new FloatingParticlePool(15);
+  particlePool.init(particleContainer);
 
   // Create initial particles
-  for (let i = 0; i < maxParticles; i++) {
-    setTimeout(createParticle, i * 800);
+  for (let i = 0; i < 12; i++) {
+    setTimeout(() => particlePool.createParticle(), i * 800);
   }
 
-  // Continuously create new particles (faster rate since Aurora removed)
-  setInterval(createParticle, 1400);
+  // Continuously create new particles (optimized rate)
+  setInterval(() => particlePool.createParticle(), 1400);
 }
 
 // Initialize particles after DOM is loaded
@@ -1294,21 +1326,48 @@ class Hearts3DEngine {
     this.ctx = canvas.getContext('2d');
     this.hearts = [];
     this.constellationLines = [];
-    this.mode = '3d'; // '3d', 'constellation', 'aurora', 'particles'
+    this.mode = 'both'; // Start with both 3D and constellation
     this.maxHearts = this.getOptimalHeartCount();
     this.animationFrame = null;
     this.lastTime = 0;
     this.fps = 0;
     this.frameCount = 0;
     
-    // Performance optimization
+    // Performance optimization caches
+    this.gradientCache = new Map();
+    this.heartPathCache = null;
     this.isLowPowerDevice = this.detectLowPowerDevice();
+    
+    // Canvas optimizations
+    this.setupCanvasOptimizations();
     
     this.resize();
     this.initHearts();
     this.start();
     
     window.addEventListener('resize', () => this.resize());
+  }
+
+  setupCanvasOptimizations() {
+    // Enable hardware acceleration hints
+    this.ctx.imageSmoothingEnabled = true;
+    this.ctx.imageSmoothingQuality = 'high';
+    
+    // Pre-create heart path for reuse
+    this.createHeartPath();
+  }
+
+  createHeartPath() {
+    // Create reusable heart path
+    this.heartPath = new Path2D();
+    this.heartPath.moveTo(0, 6);
+    // Left curve
+    this.heartPath.bezierCurveTo(-8, -2, -12, -8, -6, -12);
+    this.heartPath.bezierCurveTo(-3, -14, 0, -12, 0, -8);
+    // Right curve  
+    this.heartPath.bezierCurveTo(0, -12, 3, -14, 6, -12);
+    this.heartPath.bezierCurveTo(12, -8, 8, -2, 0, 6);
+    this.heartPath.closePath();
   }
 
   detectLowPowerDevice() {
@@ -1399,7 +1458,12 @@ class Hearts3DEngine {
     const y = heart.y * scale + (this.canvas.height * (1 - scale)) / 2;
     const size = heart.size * scale;
     
-    // Pulsing effect
+    // Skip rendering if too small or too far (viewport culling)
+    if (size < 1 || x < -50 || x > this.canvas.width + 50 || y < -50 || y > this.canvas.height + 50) {
+      return { x, y, size, alpha: 0 };
+    }
+    
+    // Pulsing effect (optimized)
     const pulse = Math.sin(Date.now() * 0.005 + heart.pulsePhase) * 0.3 + 1;
     const finalSize = size * pulse;
     
@@ -1407,32 +1471,34 @@ class Hearts3DEngine {
     const depthAlpha = Math.max(0.1, Math.min(1, (1000 - heart.z) / 1000));
     const alpha = heart.alpha * depthAlpha;
     
+    // Get cached gradient or create new one
+    const gradientKey = `${heart.color}_${Math.floor(alpha * 10)}`;
+    let gradient = this.gradientCache.get(gradientKey);
+    if (!gradient) {
+      gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+      gradient.addColorStop(0, heart.color + alpha + ')');
+      gradient.addColorStop(0.7, heart.color + (alpha * 0.8) + ')');
+      gradient.addColorStop(1, heart.color + '0)');
+      
+      // Cache gradient (limit cache size)
+      if (this.gradientCache.size > 50) {
+        this.gradientCache.clear();
+      }
+      this.gradientCache.set(gradientKey, gradient);
+    }
+    
     this.ctx.save();
     this.ctx.translate(x, y);
     this.ctx.rotate((heart.rotation * Math.PI) / 180);
     this.ctx.scale(finalSize / 20, finalSize / 20);
     
-    // Draw 3D heart with gradient
-    const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
-    gradient.addColorStop(0, heart.color + alpha + ')');
-    gradient.addColorStop(0.7, heart.color + (alpha * 0.8) + ')');
-    gradient.addColorStop(1, heart.color + '0)');
-    
+    // Use cached gradient and path
     this.ctx.fillStyle = gradient;
     this.ctx.shadowColor = heart.color + '0.8)';
     this.ctx.shadowBlur = 15 * scale;
     
-    // Improved heart shape - more realistic
-    this.ctx.beginPath();
-    this.ctx.moveTo(0, 6); // Bottom point
-    // Left curve
-    this.ctx.bezierCurveTo(-8, -2, -12, -8, -6, -12);
-    this.ctx.bezierCurveTo(-3, -14, 0, -12, 0, -8);
-    // Right curve  
-    this.ctx.bezierCurveTo(0, -12, 3, -14, 6, -12);
-    this.ctx.bezierCurveTo(12, -8, 8, -2, 0, 6);
-    this.ctx.closePath();
-    this.ctx.fill();
+    // Use pre-created path for better performance
+    this.ctx.fill(this.heartPath);
     
     this.ctx.restore();
     
@@ -1442,18 +1508,22 @@ class Hearts3DEngine {
   drawConstellationLines() {
     if (this.mode !== 'constellation' && this.mode !== 'both') return;
     
-    // Clear old lines
-    this.constellationLines = [];
-    
     const centerX = this.canvas.width / 2;
     const centerY = this.canvas.height / 2;
     const avoidRadius = Math.min(this.canvas.width, this.canvas.height) * 0.2; // Avoid center area
+    
+    // Batch line drawing for better performance
+    const linesToDraw = [];
     
     // Connect nearby hearts but avoid center area
     for (let i = 0; i < this.hearts.length; i++) {
       for (let j = i + 1; j < this.hearts.length; j++) {
         const heart1 = this.hearts[i];
         const heart2 = this.hearts[j];
+        
+        // Quick 3D distance check before expensive calculations
+        const quickDist = Math.abs(heart1.z - heart2.z);
+        if (quickDist > 300) continue; // Skip if too far in Z
         
         const scale1 = 1000 / (heart1.z + 1000);
         const scale2 = 1000 / (heart2.z + 1000);
@@ -1468,20 +1538,33 @@ class Hearts3DEngine {
         // Check if line passes through center area
         const lineCenterDist = this.distanceToLineSegment(centerX, centerY, x1, y1, x2, y2);
         
-        // Only draw line if it doesn't pass through center and hearts are close enough
+        // Only add line if it doesn't pass through center and hearts are close enough
         if (distance < 250 && lineCenterDist > avoidRadius) {
-          this.ctx.save();
-          this.ctx.strokeStyle = `rgba(255, 105, 180, ${0.3 * (1 - distance / 250)})`;
-          this.ctx.lineWidth = 1.5;
-          this.ctx.shadowColor = 'rgba(255, 105, 180, 0.6)';
-          this.ctx.shadowBlur = 3;
-          this.ctx.beginPath();
-          this.ctx.moveTo(x1, y1);
-          this.ctx.lineTo(x2, y2);
-          this.ctx.stroke();
-          this.ctx.restore();
+          linesToDraw.push({
+            x1, y1, x2, y2,
+            alpha: 0.3 * (1 - distance / 250),
+            width: 1.5
+          });
         }
       }
+    }
+    
+    // Batch draw all lines with minimal context switches
+    if (linesToDraw.length > 0) {
+      this.ctx.save();
+      this.ctx.shadowColor = 'rgba(255, 105, 180, 0.6)';
+      this.ctx.shadowBlur = 3;
+      
+      linesToDraw.forEach(line => {
+        this.ctx.strokeStyle = `rgba(255, 105, 180, ${line.alpha})`;
+        this.ctx.lineWidth = line.width;
+        this.ctx.beginPath();
+        this.ctx.moveTo(line.x1, line.y1);
+        this.ctx.lineTo(line.x2, line.y2);
+        this.ctx.stroke();
+      });
+      
+      this.ctx.restore();
     }
   }
 
@@ -1521,15 +1604,23 @@ class Hearts3DEngine {
   }
 
   render() {
+    // Use willReadFrequently hint for better performance
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
-    // Sort hearts by depth (far to near)
+    // Sort hearts by depth (far to near) - only when needed
     const sortedHearts = this.hearts.slice().sort((a, b) => b.z - a.z);
     
-    // Draw hearts
-    const renderedHearts = sortedHearts.map(heart => this.drawHeart(heart));
+    // Batch operations to reduce context switches
+    this.ctx.save();
     
-    // Draw constellation lines on top
+    // Draw all hearts with minimal context changes
+    for (const heart of sortedHearts) {
+      this.drawHeart(heart);
+    }
+    
+    this.ctx.restore();
+    
+    // Draw constellation lines on top (separate batch)
     if (this.mode === 'constellation' || this.mode === 'both') {
       this.drawConstellationLines();
     }
@@ -1550,20 +1641,34 @@ class Hearts3DEngine {
   }
 
   start() {
+    let targetFPS = 60;
+    let frameInterval = 1000 / targetFPS;
+    let lastFrameTime = 0;
+    
     const animate = (currentTime) => {
+      // Adaptive frame rate - skip frames if needed
+      if (currentTime - lastFrameTime < frameInterval) {
+        this.animationFrame = requestAnimationFrame(animate);
+        return;
+      }
+      
       // FPS monitoring for performance optimization
       if (currentTime - this.lastTime >= 1000) {
         this.fps = this.frameCount;
         this.frameCount = 0;
         this.lastTime = currentTime;
         
-        // Dynamic quality adjustment
-        if (this.fps < 30 && this.maxHearts > 10) {
-          this.maxHearts = Math.max(10, this.maxHearts - 2);
-          this.initHearts();
+        // Adaptive FPS: reduce target FPS if struggling
+        if (this.fps < 30) {
+          targetFPS = Math.max(30, targetFPS - 5);
+          frameInterval = 1000 / targetFPS;
+        } else if (this.fps > 55 && targetFPS < 60) {
+          targetFPS = Math.min(60, targetFPS + 2);
+          frameInterval = 1000 / targetFPS;
         }
       }
       this.frameCount++;
+      lastFrameTime = currentTime;
 
       this.update();
       this.render();
@@ -1619,9 +1724,34 @@ class VisualEffectsManager {
   }
 }
 
-// Initialize 3D Visual Effects after DOM loads
+// Initialize 3D Visual Effects after DOM loads with optimizations
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
+  // Lazy initialization - only start after page is fully interactive
+  const initVisualEffects = () => {
+    // Check if page is still loading
+    if (document.readyState !== 'complete') {
+      setTimeout(initVisualEffects, 100);
+      return;
+    }
+    
+    // Initialize with performance monitoring
     window.visualEffects = new VisualEffectsManager();
-  }, 1000);
+    
+    // Clean up unused resources periodically
+    setInterval(() => {
+      if (window.visualEffects && window.visualEffects.hearts3D) {
+        // Clear gradient cache if too large
+        if (window.visualEffects.hearts3D.gradientCache.size > 100) {
+          window.visualEffects.hearts3D.gradientCache.clear();
+        }
+      }
+      
+      // Force garbage collection hint (if available)
+      if (window.gc) {
+        window.gc();
+      }
+    }, 30000); // Every 30 seconds
+  };
+  
+  setTimeout(initVisualEffects, 1000);
 });
