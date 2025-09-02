@@ -1234,7 +1234,7 @@ function createFloatingParticles() {
   if (!particleContainer) return;
 
   const particles = ['💖', '💕', '💗', '🌟', '✨', '💫', '🌸', '🌺'];
-  const maxParticles = 15;
+  const maxParticles = 12; // Increased since Aurora is removed
 
   function createParticle() {
     const particle = document.createElement('div');
@@ -1261,8 +1261,8 @@ function createFloatingParticles() {
     setTimeout(createParticle, i * 800);
   }
 
-  // Continuously create new particles
-  setInterval(createParticle, 1200);
+  // Continuously create new particles (faster rate since Aurora removed)
+  setInterval(createParticle, 1400);
 }
 
 // Initialize particles after DOM is loaded
@@ -1285,3 +1285,343 @@ function addRomanticPulsing() {
 
 // Initialize romantic effects
 document.addEventListener('DOMContentLoaded', addRomanticPulsing);
+
+// ===================== 3D VISUAL EFFECTS ENGINE =====================
+
+class Hearts3DEngine {
+  constructor(canvas) {
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d');
+    this.hearts = [];
+    this.constellationLines = [];
+    this.mode = '3d'; // '3d', 'constellation', 'aurora', 'particles'
+    this.maxHearts = this.getOptimalHeartCount();
+    this.animationFrame = null;
+    this.lastTime = 0;
+    this.fps = 0;
+    this.frameCount = 0;
+    
+    // Performance optimization
+    this.isLowPowerDevice = this.detectLowPowerDevice();
+    
+    this.resize();
+    this.initHearts();
+    this.start();
+    
+    window.addEventListener('resize', () => this.resize());
+  }
+
+  detectLowPowerDevice() {
+    // Simple heuristic to detect potentially low-power devices
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const hasLowMemory = navigator.deviceMemory && navigator.deviceMemory < 4;
+    return isMobile || hasLowMemory;
+  }
+
+  getOptimalHeartCount() {
+    if (this.isLowPowerDevice) {
+      return 15; // More hearts since Aurora is removed
+    }
+    return 25; // Full experience without Aurora
+  }
+
+  resize() {
+    this.canvas.width = window.innerWidth;
+    this.canvas.height = window.innerHeight;
+  }
+
+  initHearts() {
+    this.hearts = [];
+    for (let i = 0; i < this.maxHearts; i++) {
+      this.hearts.push(this.createHeart());
+    }
+  }
+
+  createHeart() {
+    let x, y;
+    
+    if (this.mode === 'both' || this.mode === 'constellation') {
+      // Distribute hearts around avatar areas, avoid center
+      const centerX = this.canvas.width / 2;
+      const centerY = this.canvas.height / 2;
+      const avoidRadius = Math.min(this.canvas.width, this.canvas.height) * 0.25; // Avoid center 25%
+      
+      do {
+        x = Math.random() * this.canvas.width;
+        y = Math.random() * this.canvas.height;
+      } while (Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2)) < avoidRadius);
+      
+      // Bias towards avatar areas (top corners and edges)
+      if (Math.random() > 0.5) {
+        // Left side (male avatar area)
+        x = Math.random() * (this.canvas.width * 0.4);
+      } else {
+        // Right side (female avatar area) 
+        x = this.canvas.width * 0.6 + Math.random() * (this.canvas.width * 0.4);
+      }
+    } else {
+      // Normal random distribution for regular 3D mode
+      x = Math.random() * this.canvas.width;
+      y = Math.random() * this.canvas.height;
+    }
+    
+    return {
+      x: x,
+      y: y,
+      z: Math.random() * 1000 + 100, // Depth
+      vx: (Math.random() - 0.5) * 1.5, // Slower movement
+      vy: (Math.random() - 0.5) * 1.5,
+      vz: (Math.random() - 0.5) * 2,
+      size: Math.random() * 15 + 8, // Slightly smaller
+      rotation: Math.random() * 360,
+      rotationSpeed: (Math.random() - 0.5) * 3, // Slower rotation
+      color: this.getRandomHeartColor(),
+      pulsePhase: Math.random() * Math.PI * 2,
+      alpha: Math.random() * 0.6 + 0.3 // More visible
+    };
+  }
+
+  getRandomHeartColor() {
+    const colors = [
+      'rgba(255, 105, 180, ',
+      'rgba(255, 182, 193, ',
+      'rgba(255, 20, 147, ',
+      'rgba(255, 192, 203, ',
+      'rgba(255, 69, 0, ',
+      'rgba(138, 43, 226, '
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  }
+
+  drawHeart(heart) {
+    const scale = 1000 / (heart.z + 1000); // 3D perspective
+    const x = heart.x * scale + (this.canvas.width * (1 - scale)) / 2;
+    const y = heart.y * scale + (this.canvas.height * (1 - scale)) / 2;
+    const size = heart.size * scale;
+    
+    // Pulsing effect
+    const pulse = Math.sin(Date.now() * 0.005 + heart.pulsePhase) * 0.3 + 1;
+    const finalSize = size * pulse;
+    
+    // Calculate alpha based on depth
+    const depthAlpha = Math.max(0.1, Math.min(1, (1000 - heart.z) / 1000));
+    const alpha = heart.alpha * depthAlpha;
+    
+    this.ctx.save();
+    this.ctx.translate(x, y);
+    this.ctx.rotate((heart.rotation * Math.PI) / 180);
+    this.ctx.scale(finalSize / 20, finalSize / 20);
+    
+    // Draw 3D heart with gradient
+    const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 20);
+    gradient.addColorStop(0, heart.color + alpha + ')');
+    gradient.addColorStop(0.7, heart.color + (alpha * 0.8) + ')');
+    gradient.addColorStop(1, heart.color + '0)');
+    
+    this.ctx.fillStyle = gradient;
+    this.ctx.shadowColor = heart.color + '0.8)';
+    this.ctx.shadowBlur = 15 * scale;
+    
+    // Improved heart shape - more realistic
+    this.ctx.beginPath();
+    this.ctx.moveTo(0, 6); // Bottom point
+    // Left curve
+    this.ctx.bezierCurveTo(-8, -2, -12, -8, -6, -12);
+    this.ctx.bezierCurveTo(-3, -14, 0, -12, 0, -8);
+    // Right curve  
+    this.ctx.bezierCurveTo(0, -12, 3, -14, 6, -12);
+    this.ctx.bezierCurveTo(12, -8, 8, -2, 0, 6);
+    this.ctx.closePath();
+    this.ctx.fill();
+    
+    this.ctx.restore();
+    
+    return { x, y, size: finalSize, alpha };
+  }
+
+  drawConstellationLines() {
+    if (this.mode !== 'constellation' && this.mode !== 'both') return;
+    
+    // Clear old lines
+    this.constellationLines = [];
+    
+    const centerX = this.canvas.width / 2;
+    const centerY = this.canvas.height / 2;
+    const avoidRadius = Math.min(this.canvas.width, this.canvas.height) * 0.2; // Avoid center area
+    
+    // Connect nearby hearts but avoid center area
+    for (let i = 0; i < this.hearts.length; i++) {
+      for (let j = i + 1; j < this.hearts.length; j++) {
+        const heart1 = this.hearts[i];
+        const heart2 = this.hearts[j];
+        
+        const scale1 = 1000 / (heart1.z + 1000);
+        const scale2 = 1000 / (heart2.z + 1000);
+        
+        const x1 = heart1.x * scale1 + (this.canvas.width * (1 - scale1)) / 2;
+        const y1 = heart1.y * scale1 + (this.canvas.height * (1 - scale1)) / 2;
+        const x2 = heart2.x * scale2 + (this.canvas.width * (1 - scale2)) / 2;
+        const y2 = heart2.y * scale2 + (this.canvas.height * (1 - scale2)) / 2;
+        
+        const distance = Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+        
+        // Check if line passes through center area
+        const lineCenterDist = this.distanceToLineSegment(centerX, centerY, x1, y1, x2, y2);
+        
+        // Only draw line if it doesn't pass through center and hearts are close enough
+        if (distance < 250 && lineCenterDist > avoidRadius) {
+          this.ctx.save();
+          this.ctx.strokeStyle = `rgba(255, 105, 180, ${0.3 * (1 - distance / 250)})`;
+          this.ctx.lineWidth = 1.5;
+          this.ctx.shadowColor = 'rgba(255, 105, 180, 0.6)';
+          this.ctx.shadowBlur = 3;
+          this.ctx.beginPath();
+          this.ctx.moveTo(x1, y1);
+          this.ctx.lineTo(x2, y2);
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+      }
+    }
+  }
+
+  // Helper function to calculate distance from point to line segment
+  distanceToLineSegment(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const length = Math.sqrt(dx * dx + dy * dy);
+    
+    if (length === 0) return Math.sqrt((px - x1) * (px - x1) + (py - y1) * (py - y1));
+    
+    const t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / (length * length)));
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
+    
+    return Math.sqrt((px - projX) * (px - projX) + (py - projY) * (py - projY));
+  }
+
+  update() {
+    // Update heart positions and properties
+    this.hearts.forEach(heart => {
+      heart.x += heart.vx;
+      heart.y += heart.vy;
+      heart.z += heart.vz;
+      heart.rotation += heart.rotationSpeed;
+      
+      // Wrap around screen
+      if (heart.x < 0) heart.x = this.canvas.width;
+      if (heart.x > this.canvas.width) heart.x = 0;
+      if (heart.y < 0) heart.y = this.canvas.height;
+      if (heart.y > this.canvas.height) heart.y = 0;
+      
+      // Depth boundaries
+      if (heart.z < 0) heart.z = 1000;
+      if (heart.z > 1000) heart.z = 0;
+    });
+  }
+
+  render() {
+    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    
+    // Sort hearts by depth (far to near)
+    const sortedHearts = this.hearts.slice().sort((a, b) => b.z - a.z);
+    
+    // Draw hearts
+    const renderedHearts = sortedHearts.map(heart => this.drawHeart(heart));
+    
+    // Draw constellation lines on top
+    if (this.mode === 'constellation' || this.mode === 'both') {
+      this.drawConstellationLines();
+    }
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    if (mode === 'constellation') {
+      this.maxHearts = 15; // Fewer hearts for cleaner lines
+      this.initHearts();
+    } else if (mode === 'both') {
+      this.maxHearts = 25; // Full experience without Aurora
+      this.initHearts();
+    } else if (mode === '3d') {
+      this.maxHearts = 25;
+      this.initHearts();
+    }
+  }
+
+  start() {
+    const animate = (currentTime) => {
+      // FPS monitoring for performance optimization
+      if (currentTime - this.lastTime >= 1000) {
+        this.fps = this.frameCount;
+        this.frameCount = 0;
+        this.lastTime = currentTime;
+        
+        // Dynamic quality adjustment
+        if (this.fps < 30 && this.maxHearts > 10) {
+          this.maxHearts = Math.max(10, this.maxHearts - 2);
+          this.initHearts();
+        }
+      }
+      this.frameCount++;
+
+      this.update();
+      this.render();
+      this.animationFrame = requestAnimationFrame(animate);
+    };
+    animate(performance.now());
+  }
+
+  stop() {
+    if (this.animationFrame) {
+      cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = null;
+    }
+  }
+}
+
+// Visual Effects Manager - All effects enabled simultaneously
+class VisualEffectsManager {
+  constructor() {
+    this.hearts3D = null;
+    this.init();
+  }
+
+  init() {
+    // Initialize 3D Hearts Engine with both 3D and constellation modes
+    const canvas = document.getElementById('hearts-3d-canvas');
+    if (canvas) {
+      this.hearts3D = new Hearts3DEngine(canvas);
+      // Enable both 3D hearts AND constellation lines
+      this.hearts3D.setMode('both'); // New combined mode
+    }
+    
+    // Enable all visual effects
+    this.enableAllEffects();
+  }
+
+  enableAllEffects() {
+    // Show remaining visual effects simultaneously (Aurora removed)
+    const particles = document.getElementById('floating-particles');
+    const hearts3D = document.getElementById('hearts-3d-canvas');
+    
+    // Make sure all remaining effects are visible
+    if (particles) {
+      particles.style.display = 'block';
+      particles.style.opacity = '1';
+    }
+    if (hearts3D) {
+      hearts3D.style.display = 'block';
+      hearts3D.style.opacity = '1';
+    }
+
+    console.log('🎉 Visual effects enabled: Particles + 3D Hearts + Constellations!');
+  }
+}
+
+// Initialize 3D Visual Effects after DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    window.visualEffects = new VisualEffectsManager();
+  }, 1000);
+});
