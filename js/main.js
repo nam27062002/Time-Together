@@ -57,8 +57,11 @@ async function uploadAvatar(file, userKey) {
  * Lắng nghe thay đổi avatar realtime và cập nhật ảnh.
  * @param {string} userKey
  * @param {HTMLImageElement} avatarElement
+ * @param {Function} onDataLoaded - Callback khi dữ liệu đầu tiên được load
  */
-function subscribeAvatar(userKey, avatarElement) {
+function subscribeAvatar(userKey, avatarElement, onDataLoaded) {
+  let hasCalledCallback = false;
+  
   db.collection(CONFIG.collections.avatars)
     .doc(userKey)
     .onSnapshot((doc) => {
@@ -92,6 +95,12 @@ function subscribeAvatar(userKey, avatarElement) {
         // render gallery
         const galleryEl = userKey === "male" ? maleGallery : femaleGallery;
         renderGallery(userKey, galleryEl, historyArr, currentUrl);
+        
+        // Call onDataLoaded callback if provided and not called yet
+        if (onDataLoaded && !hasCalledCallback) {
+          hasCalledCallback = true;
+          onDataLoaded();
+        }
       } else {
         // Nếu chưa có doc, thử lấy ảnh default trên Storage, nếu thất bại mới dùng ảnh local
         const defaultUrl = `${STORAGE_BASE_URL}/avatars%2F${userKey}%2Fdefault.jpg?alt=media`;
@@ -102,9 +111,21 @@ function subscribeAvatar(userKey, avatarElement) {
             } else {
               avatarElement.src = `img/${userKey}.jpg`;
             }
+            
+            // Call onDataLoaded callback if provided and not called yet
+            if (onDataLoaded && !hasCalledCallback) {
+              hasCalledCallback = true;
+              onDataLoaded();
+            }
           })
           .catch(() => {
             avatarElement.src = `img/${userKey}.jpg`;
+            
+            // Call onDataLoaded callback if provided and not called yet
+            if (onDataLoaded && !hasCalledCallback) {
+              hasCalledCallback = true;
+              onDataLoaded();
+            }
           });
 
         // xóa gallery nếu không có dữ liệu
@@ -543,6 +564,9 @@ function showMusicTitle() {
 // Loading screen handling
 document.addEventListener("DOMContentLoaded", () => {
   const musicControl = document.querySelector(".music-control");
+  const mainContent = document.getElementById("info");
+
+  // Main content is hidden by default via CSS
 
   // Gọi hàm để đặt nhạc ngẫu nhiên khi trang tải
   setRandomMusic();
@@ -550,23 +574,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Show loading screen
   showLoading();
 
-  // Chỉ ẩn loading khi 2 avatar chính đã load hoặc sau 6s fallback
+  // Chỉ hiện nội dung chính sau khi cả 2 avatar đã load từ Firebase
   let avatarLoadedCount = 0;
-  const checkAvatarLoaded = () => {
+  const checkDataLoaded = () => {
     avatarLoadedCount++;
-    if (avatarLoadedCount >= 2) hideLoading();
+    if (avatarLoadedCount >= 2) {
+      // Hide loading and show main content
+      hideLoading();
+      mainContent.classList.add("loaded");
+    }
   };
 
-  [maleAvatar, femaleAvatar].forEach((img) => {
-    if (img.complete) {
-      checkAvatarLoaded();
-    } else {
-      img.addEventListener("load", checkAvatarLoaded);
-      img.addEventListener("error", checkAvatarLoaded);
+  // Make checkDataLoaded available globally for subscribeAvatar calls
+  window.checkDataLoaded = checkDataLoaded;
+  
+  // Fallback timeout to show content even if Firebase fails
+  setTimeout(() => {
+    if (avatarLoadedCount < 2) {
+      hideLoading();
+      mainContent.classList.add("loaded");
     }
-  });
-
-  setTimeout(hideLoading, CONFIG.app.loadingTimeout);
+  }, CONFIG.app.loadingTimeout);
 
   // Simple click handler for music control - only toggle play/pause
   musicControl.addEventListener("click", (e) => {
@@ -1247,5 +1275,5 @@ femaleFileInput.addEventListener("change", (e) =>
 // Không còn dùng localStorage cache avatar nữa
 
 // Đăng ký lắng nghe avatar realtime từ Firebase
-subscribeAvatar("male", maleAvatar);
-subscribeAvatar("female", femaleAvatar);
+subscribeAvatar("male", maleAvatar, window.checkDataLoaded);
+subscribeAvatar("female", femaleAvatar, window.checkDataLoaded);

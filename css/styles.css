@@ -61,6 +61,14 @@ body {
   align-items: center;
   justify-content: center;
   height: 100vh;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+}
+
+#info.loaded {
+  opacity: 1;
+  visibility: visible;
 }
 
 #pinkboard {
@@ -197,7 +205,8 @@ body {
   }
 
   /* Allow text selection for important content */
-  .t_name, .music-title-display {
+  .t_name,
+  .music-title-display {
     -webkit-user-select: text;
     user-select: text;
   }
@@ -205,7 +214,8 @@ body {
   /* Better viewport handling */
   #info {
     min-height: 100vh;
-    min-height: 100svh; /* Safari support */
+    min-height: 100svh;
+    /* Safari support */
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
   }
@@ -261,12 +271,19 @@ body {
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
+
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
     transform: translateX(-50%) translateY(0);
   }
+
   40% {
     transform: translateX(-50%) translateY(-10px);
   }
+
   60% {
     transform: translateX(-50%) translateY(-5px);
   }
@@ -311,9 +328,17 @@ body {
   animation: heartBeat 1.5s ease-in-out infinite;
 }
 
-.heart-1 { animation-delay: 0s; }
-.heart-2 { animation-delay: 0.3s; }
-.heart-3 { animation-delay: 0.6s; }
+.heart-1 {
+  animation-delay: 0s;
+}
+
+.heart-2 {
+  animation-delay: 0.3s;
+}
+
+.heart-3 {
+  animation-delay: 0.6s;
+}
 
 .loading-text {
   font-family: 'Poppins', sans-serif;
@@ -335,15 +360,25 @@ body {
 }
 
 @keyframes gradientShift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes heartBeat {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: scale(1);
     opacity: 0.7;
   }
+
   50% {
     transform: scale(1.3);
     opacity: 1;
@@ -351,13 +386,27 @@ body {
 }
 
 @keyframes textShimmer {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes fade {
-  0%, 100% { opacity: 0.4; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 /* PWA Install Button */
@@ -395,7 +444,7 @@ body {
   .install-button {
     display: none !important;
   }
-  
+
   /* Add padding for status bar on iOS */
   #info {
     padding-top: max(env(safe-area-inset-top), 20px);
@@ -407,7 +456,7 @@ body {
   .install-button {
     display: none !important;
   }
-  
+
   #info {
     padding-top: max(env(safe-area-inset-top), 20px);
     padding-bottom: max(env(safe-area-inset-bottom), 20px);
@@ -1032,10 +1081,13 @@ a {
 }
 
 @keyframes placeholderPulse {
-  0%, 100% {
+
+  0%,
+  100% {
     opacity: 0.7;
     transform: scale(1);
   }
+
   50% {
     opacity: 1;
     transform: scale(1.05);
@@ -1049,7 +1101,8 @@ a {
   gap: 10px;
   margin-top: 12px;
   justify-content: center;
-  min-height: 100px; /* Prevent layout shift */
+  min-height: 100px;
+  /* Prevent layout shift */
 }
 
 /* Music title display */
@@ -1139,17 +1192,23 @@ a {
   position: fixed;
   top: 0;
   left: 0;
-  right: 0;   /* Added */
-  bottom: 0;  /* Added */
-  width: 100%; /* Redundant with right/bottom but harmless */
-  height: 100%; /* Redundant with right/bottom but harmless */
+  right: 0;
+  /* Added */
+  bottom: 0;
+  /* Added */
+  width: 100%;
+  /* Redundant with right/bottom but harmless */
+  height: 100%;
+  /* Redundant with right/bottom but harmless */
   z-index: 2000;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  min-height: -webkit-fill-available; /* For iOS Safari */
-  min-height: fill-available; /* Standard */
+  min-height: -webkit-fill-available;
+  /* For iOS Safari */
+  min-height: fill-available;
+  /* Standard */
 }
 
 #passcode-screen.hidden {
@@ -1159,10 +1218,12 @@ a {
 
 .passcode-container {
   text-align: center;
-  max-width: 320px; /* Slightly wider for better layout */
+  max-width: 320px;
+  /* Slightly wider for better layout */
   width: 100%;
   padding: 30px;
-  background: rgba(255, 255, 255, 0.1); /* Subtle translucent background */
+  background: rgba(255, 255, 255, 0.1);
+  /* Subtle translucent background */
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -1196,19 +1257,41 @@ a {
 }
 
 @keyframes romanticGradient {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 @keyframes floatingHearts {
-  0%, 100% { transform: translateY(0px) rotate(0deg); }
-  33% { transform: translateY(-10px) rotate(1deg); }
-  66% { transform: translateY(5px) rotate(-1deg); }
+
+  0%,
+  100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+
+  66% {
+    transform: translateY(5px) rotate(-1deg);
+  }
 }
 
 @keyframes floatingEmojis {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 /* Mobile full screen for passcode */
@@ -1266,32 +1349,51 @@ a {
 }
 
 @keyframes titleRomanticGlow {
-  0%, 100% { 
+
+  0%,
+  100% {
     text-shadow: 0 0 20px rgba(214, 98, 145, 0.8), 0 0 40px rgba(255, 105, 180, 0.4);
     transform: scale(1);
   }
-  50% { 
+
+  50% {
     text-shadow: 0 0 30px rgba(214, 98, 145, 1), 0 0 60px rgba(255, 105, 180, 0.6);
     transform: scale(1.02);
   }
 }
 
 @keyframes heartBeatLeft {
-  0%, 100% { transform: translateY(-50%) scale(1); }
-  50% { transform: translateY(-50%) scale(1.2); }
+
+  0%,
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
+
+  50% {
+    transform: translateY(-50%) scale(1.2);
+  }
 }
 
 @keyframes heartBeatRight {
-  0%, 100% { transform: translateY(-50%) scale(1); }
-  50% { transform: translateY(-50%) scale(1.2); }
+
+  0%,
+  100% {
+    transform: translateY(-50%) scale(1);
+  }
+
+  50% {
+    transform: translateY(-50%) scale(1.2);
+  }
 }
 
 .passcode-dots {
   display: flex;
   justify-content: center;
-  gap: 15px; /* Closer dots */
+  gap: 15px;
+  /* Closer dots */
   margin-bottom: 25px;
-  height: 30px; /* Taller for hearts */
+  height: 30px;
+  /* Taller for hearts */
   align-items: center;
 }
 
@@ -1300,36 +1402,61 @@ a {
 }
 
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
-  20%, 40%, 60%, 80% { transform: translateX(8px); }
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  10%,
+  30%,
+  50%,
+  70%,
+  90% {
+    transform: translateX(-8px);
+  }
+
+  20%,
+  40%,
+  60%,
+  80% {
+    transform: translateX(8px);
+  }
 }
 
 .dot {
-  font-size: 28px; /* Heart size */
-  color: #cccccc; /* Unfilled heart color - light gray */
-  opacity: 0.4; /* Apply opacity separately */
+  font-size: 28px;
+  /* Heart size */
+  color: #cccccc;
+  /* Unfilled heart color - light gray */
+  opacity: 0.4;
+  /* Apply opacity separately */
   transition: color 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
 }
 
 .dot.filled {
-  color: #ff69b4 !important; /* Filled heart color - vibrant pink, force override */
-  opacity: 1 !important; /* Ensure full opacity when filled */
-  transform: scale(1.1); /* Pop effect when filled */
+  color: #ff69b4 !important;
+  /* Filled heart color - vibrant pink, force override */
+  opacity: 1 !important;
+  /* Ensure full opacity when filled */
+  transform: scale(1.1);
+  /* Pop effect when filled */
 }
 
 .passcode-status {
   height: 20px;
   margin-bottom: 25px;
   font-size: 16px;
-  color: #ffdd00; /* Soft yellow for status messages */
+  color: #ffdd00;
+  /* Soft yellow for status messages */
   font-weight: 500;
 }
 
 .passcode-keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 15px; /* Smaller gap */
+  gap: 15px;
+  /* Smaller gap */
 }
 
 .keypad-button {
@@ -1386,9 +1513,11 @@ a {
 }
 
 .keypad-button.keypad-control {
-  background: transparent; /* Transparent for delete button */
+  background: transparent;
+  /* Transparent for delete button */
   border: none;
-  font-size: 28px; /* Icon size */
+  font-size: 28px;
+  /* Icon size */
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -1422,23 +1551,45 @@ a {
   z-index: 10000;
 }
 
-.heart-float:nth-child(1) { left: 10%; animation-duration: 8s; }
-.heart-float:nth-child(2) { left: 25%; animation-duration: 12s; }
-.heart-float:nth-child(3) { left: 50%; animation-duration: 9s; }
-.heart-float:nth-child(4) { left: 75%; animation-duration: 11s; }
-.heart-float:nth-child(5) { left: 90%; animation-duration: 10s; }
+.heart-float:nth-child(1) {
+  left: 10%;
+  animation-duration: 8s;
+}
+
+.heart-float:nth-child(2) {
+  left: 25%;
+  animation-duration: 12s;
+}
+
+.heart-float:nth-child(3) {
+  left: 50%;
+  animation-duration: 9s;
+}
+
+.heart-float:nth-child(4) {
+  left: 75%;
+  animation-duration: 11s;
+}
+
+.heart-float:nth-child(5) {
+  left: 90%;
+  animation-duration: 10s;
+}
 
 @keyframes floatHeart {
   0% {
     transform: translateY(100vh) rotate(0deg);
     opacity: 0;
   }
+
   10% {
     opacity: 0.6;
   }
+
   90% {
     opacity: 0.6;
   }
+
   100% {
     transform: translateY(-100px) rotate(360deg);
     opacity: 0;
@@ -1448,8 +1599,15 @@ a {
 /* Add romantic sparkle effect to passcode container */
 
 @keyframes romanticBorder {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
 }
 
 /* Enhanced passcode status with romantic styling */
@@ -1464,8 +1622,15 @@ a {
 }
 
 @keyframes statusGlow {
-  0%, 100% { text-shadow: 0 0 10px rgba(255, 182, 193, 0.5); }
-  50% { text-shadow: 0 0 20px rgba(255, 182, 193, 0.8); }
+
+  0%,
+  100% {
+    text-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
+  }
+
+  50% {
+    text-shadow: 0 0 20px rgba(255, 182, 193, 0.8);
+  }
 }
 
 /* Responsive adjustments for smaller screens */
@@ -1475,21 +1640,26 @@ a {
     height: 65px;
     font-size: 30px;
   }
+
   .passcode-keypad {
     gap: 10px;
   }
+
   .passcode-title {
     font-size: 24px;
   }
+
   .passcode-title::before,
   .passcode-title::after {
     left: -30px;
     right: -30px;
     font-size: 20px;
   }
+
   .dot {
     font-size: 24px;
   }
+
   .heart-float {
     font-size: 32px;
     opacity: 0.9;
