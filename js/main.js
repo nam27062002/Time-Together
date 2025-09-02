@@ -602,37 +602,12 @@ document.addEventListener("DOMContentLoaded", () => {
     toggleMusicPlayback();
   });
 
-  // Touch/hover anywhere for 3 seconds to change song
-  let changeTimer = null;
-  let isActive = false;
+  // Music change gesture: Only swipe up on mobile
   let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  const startChangeTimer = () => {
-    if (!isActive) {
-      isActive = true;
-      changeTimer = setTimeout(() => {
-        if (isActive) {
-          nextMusic();
-          isActive = false;
-        }
-      }, CONFIG.app.musicChangeHoldTime);
-    }
-  };
-
-  const endChangeTimer = () => {
-    isActive = false;
-    if (changeTimer) {
-      clearTimeout(changeTimer);
-      changeTimer = null;
-    }
-  };
-
-
   if (isMobile) {
-    // Mobile: Use swipe up gesture or double tap anywhere on screen
+    // Mobile: Use swipe up gesture only
     let touchStartY = 0;
-    let lastTapTime = 0;
-    let tapCount = 0;
     
     document.addEventListener("touchstart", (e) => {
       // Ignore touches on interactive elements
@@ -647,39 +622,12 @@ document.addEventListener("DOMContentLoaded", () => {
       
       const touchEndY = e.changedTouches[0].clientY;
       const swipeDistance = touchStartY - touchEndY;
-      const currentTime = Date.now();
       
       // Check for swipe up (at least 100px)
       if (swipeDistance > 100) {
         nextMusic();
-        return;
       }
-      
-      // Check for double tap
-      if (currentTime - lastTapTime < 300) {
-        tapCount++;
-        if (tapCount === 2) {
-          nextMusic();
-          tapCount = 0;
-          return;
-        }
-      } else {
-        tapCount = 1;
-      }
-      
-      lastTapTime = currentTime;
-      
-      // Reset tap count after delay
-      setTimeout(() => {
-        tapCount = 0;
-      }, 300);
     }, { passive: true });
-
-  } else {
-    // Desktop: Use hover
-    document.body.addEventListener("mouseenter", startChangeTimer);
-    document.body.addEventListener("mouseleave", endChangeTimer);
-    document.body.addEventListener("mousemove", startChangeTimer);
   }
 
   // Update music control state when audio play/pause events occur
