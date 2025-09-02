@@ -1277,3 +1277,63 @@ femaleFileInput.addEventListener("change", (e) =>
 // Đăng ký lắng nghe avatar realtime từ Firebase
 subscribeAvatar("male", maleAvatar, window.checkDataLoaded);
 subscribeAvatar("female", femaleAvatar, window.checkDataLoaded);
+
+// ===================== ROMANTIC VISUAL EFFECTS =====================
+
+// Create floating particles
+function createFloatingParticles() {
+  const particleContainer = document.getElementById('floating-particles');
+  if (!particleContainer) return;
+
+  const particles = ['💖', '💕', '💗', '🌟', '✨', '💫', '🌸', '🌺'];
+  const maxParticles = 15;
+
+  function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.textContent = particles[Math.floor(Math.random() * particles.length)];
+    
+    // Random positioning
+    particle.style.left = Math.random() * 100 + '%';
+    particle.style.animationDuration = (Math.random() * 8 + 10) + 's';
+    particle.style.animationDelay = Math.random() * 2 + 's';
+    
+    particleContainer.appendChild(particle);
+    
+    // Remove particle after animation
+    setTimeout(() => {
+      if (particle.parentNode) {
+        particle.parentNode.removeChild(particle);
+      }
+    }, 12000);
+  }
+
+  // Create initial particles
+  for (let i = 0; i < maxParticles; i++) {
+    setTimeout(createParticle, i * 800);
+  }
+
+  // Continuously create new particles
+  setInterval(createParticle, 1200);
+}
+
+// Initialize particles after DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(createFloatingParticles, 2000); // Start after 2 seconds
+});
+
+// Add romantic pulsing effect to the main info container
+function addRomanticPulsing() {
+  const infoContainer = document.getElementById('info');
+  if (infoContainer) {
+    setInterval(() => {
+      infoContainer.style.filter = 'drop-shadow(0 0 20px rgba(255, 105, 180, 0.3))';
+      setTimeout(() => {
+        infoContainer.style.filter = 'drop-shadow(0 0 10px rgba(255, 105, 180, 0.1))';
+      }, 1000);
+    }, 3000);
+  }
+}
+
+// Initialize romantic effects
+document.addEventListener('DOMContentLoaded', addRomanticPulsing);
