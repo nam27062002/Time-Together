@@ -7,15 +7,73 @@ const SETTINGS = {
 };
 
 let displayMode = 0;
+const isMobile =
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+    navigator.userAgent
+  );
 // ===================== Firebase setup =====================
 const firebaseConfig = CONFIG.firebase;
 
 // Khởi tạo Firebase
 firebase.initializeApp(firebaseConfig);
-const authPromise = firebase
-  .auth()
-  .signInAnonymously()
-  .catch((e) => console.error("Firebase auth error:", e));
+const auth = firebase.auth();
+
+function getAuthHelpMessage(error) {
+  const code = error && typeof error === "object" ? error.code : null;
+  if (code === "auth/operation-not-allowed") {
+    return "Firebase Auth đang tắt Anonymous sign-in. Vào Firebase Console → Authentication → Sign-in method → bật Anonymous.";
+  }
+  if (code === "auth/invalid-api-key") {
+    return "Firebase Auth báo API key không hợp lệ. Kiểm tra lại `CONFIG.firebase.apiKey` trong `js/config.js`.";
+  }
+  if (code === "auth/app-not-authorized") {
+    return "Firebase Auth chặn domain hiện tại. Nếu bạn có giới hạn HTTP referrers cho API key, hãy thêm `http://127.0.0.1:5500`/domain deploy vào allowlist.";
+  }
+  return null;
+}
+
+function explainStoragePermissionError(error) {
+  const code = error && typeof error === "object" ? error.code : null;
+  if (code !== "storage/unauthorized" && code !== "storage/unauthenticated") {
+    return;
+  }
+
+  console.warn(
+    "Firebase Storage bị từ chối quyền. Cần kiểm tra Storage Rules (cho phép write nếu `request.auth != null`) và đảm bảo Anonymous Auth/App Check được cấu hình đúng.",
+    error
+  );
+}
+
+const authReadyPromise = new Promise((resolve, reject) => {
+  const unsubscribe = auth.onAuthStateChanged(
+    (user) => {
+      unsubscribe();
+      resolve(user);
+    },
+    (error) => {
+      unsubscribe();
+      reject(error);
+    }
+  );
+})
+  .then((user) => {
+    if (user) return user;
+    return auth.signInAnonymously().then((cred) => cred.user);
+  })
+  .catch((error) => {
+    console.error("Firebase auth error:", error);
+    const help = getAuthHelpMessage(error);
+    if (help) console.warn(help);
+    throw error;
+  });
+
+async function ensureAuthReady() {
+  const user = await authReadyPromise;
+  if (!user) {
+    throw new Error("Firebase auth chưa sẵn sàng (không có user).");
+  }
+  return user;
+}
 
 const storage = firebase.storage();
 const db = firebase.firestore();
@@ -29,7 +87,7 @@ const STORAGE_BASE_URL = `https://firebasestorage.googleapis.com/v0/b/${firebase
  */
 async function uploadAvatar(file, userKey) {
   // Đảm bảo đã đăng nhập ẩn danh xong
-  await authPromise;
+  await ensureAuthReady();
 
   // Tạo tên file duy nhất theo timestamp để không ghi đè ảnh cũ
   const ext = file.name.split(".").pop();
@@ -603,8 +661,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Music change gesture: Only swipe up on mobile
-  let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
   if (isMobile) {
     // Mobile: Use swipe up gesture only
     let touchStartY = 0;
@@ -919,6 +975,7 @@ function handleAvatarChange(event, avatarElement, localStorageKey) {
         imgPreload.src = url;
       })
       .catch((err) => {
+        explainStoragePermissionError(err);
         console.error("Upload avatar error:", err);
         if (typeof hideLoading === "function") hideLoading();
         hideAvatarModal();
@@ -1041,7 +1098,7 @@ subscribeBackground();
 
 /** Upload background */
 async function uploadBackground(file) {
-  await authPromise;
+  await ensureAuthReady();
   const ext = file.name.split(".").pop();
   const fileName = `${Date.now()}.${ext}`;
   const fileRef = storage.ref().child(`background/${fileName}`);
@@ -1068,6 +1125,7 @@ bgFileInput.addEventListener("change", (e) => {
       preloadBackground(url);
     })
     .catch((err) => {
+      explainStoragePermissionError(err);
       console.error("Upload background error", err);
       hideLoading();
     });
